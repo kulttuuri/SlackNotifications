@@ -22,7 +22,7 @@ if (!isset($hpc_attached)) die();
 	
 	// MANDATORY
 	
-	// Required. Slack incoming webhook URL. 
+	// Required. Your Slack incoming webhook URL. Read more from here: https://api.slack.com/incoming-webhooks
 	$wgSlackIncomingWebhookUrl = "";
 	// Required. Name the message will appear be sent from.
 	$wgSlackFromName = "Wiki";
