@@ -2,6 +2,8 @@
 
 This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) that sends notifications of actions in your Wiki like editing, adding or removing a page into [Slack](https://slack.com/) channel.
 
+> Looking for extension that can send notifications to HipChat? [Click here](https://github.com/kulttuuri/hipchat_mediawiki).
+
 ![Screenshot](http://i.imgur.com/4SG64a3.jpg)
 
 ## Supported MediaWiki operations to send notifications
