@@ -46,9 +46,7 @@ $wgWikiUrlEnding = "index.php?title=";
 $wgSlackSendMethod = "curl";
 ```
 
-3) You need to create a incoming webhook and paste it's URL
-
-3) Enjoy the notifications in your Slack room!
+5) Enjoy the notifications in your Slack room!
 	
 ## Additional options
 
