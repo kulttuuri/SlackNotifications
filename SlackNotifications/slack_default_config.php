@@ -8,7 +8,7 @@
  * @ingroup Extensions
  * @link https://github.com/kulttuuri/slack_mediawiki
  * @author Aleksi Postari / kulttuuri <aleksi@postari.net>
- * @copyright Copyright © 2015, Aleksi Postari
+ * @copyright Copyright © 2016, Aleksi Postari
  * @license http://en.wikipedia.org/wiki/MIT_License MIT
  */
 

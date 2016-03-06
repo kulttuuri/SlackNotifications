@@ -8,7 +8,7 @@
  * @ingroup Extensions
  * @link https://github.com/kulttuuri/slack_mediawiki
  * @author Aleksi Postari / kulttuuri <aleksi@postari.net>
- * @copyright Copyright © 2015, Aleksi Postari
+ * @copyright Copyright © 2016, Aleksi Postari
  * @license http://en.wikipedia.org/wiki/MIT_License MIT
  */
 
@@ -31,7 +31,7 @@ $wgExtensionCredits['other'][] = array(
 	'author' => 'Aleksi Postari',
 	'description' => 'Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.',
 	'url' => 'https://github.com/kulttuuri/slack_mediawiki',
-	"version" => "1.0"
+	"version" => "1.01"
 );
 
 /**
@@ -207,7 +207,7 @@ function slack_file_uploaded($image)
 {
 	global $wgSlackNotificationFileUpload;
 	if (!$wgSlackNotificationFileUpload) return;
-	
+
     global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
 	$message = sprintf(
 		"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
