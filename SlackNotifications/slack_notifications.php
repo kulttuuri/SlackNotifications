@@ -17,20 +17,13 @@ if (!defined('MEDIAWIKI')) die();
 $hpc_attached = true;
 require_once("slack_default_config.php");
 
-if ($wgSlackNotificationEditedArticle)
-	$wgHooks['ArticleSaveComplete'][] = array('slack_article_saved');			// When article has been saved
-if ($wgSlackNotificationAddedArticle)
-	$wgHooks['ArticleInsertComplete'][] = array('slack_article_inserted');		// When new article has been inserted
-if ($wgSlackNotificationRemovedArticle)
-	$wgHooks['ArticleDeleteComplete'][] = array('slack_article_deleted');		// When article has been removed
-if ($wgSlackNotificationMovedArticle)
-	$wgHooks['TitleMoveComplete'][] = array('slack_article_moved');				// When article has been moved
-if ($wgSlackNotificationNewUser)
-	$wgHooks['AddNewAccount'][] = array('slack_new_user_account');				// When new user account is created
-if ($wgSlackNotificationBlockedUser)
-	$wgHooks['BlockIpComplete'][] = array('slack_user_blocked');				// When user or IP has been blocked
-if ($wgSlackNotificationFileUpload)
-	$wgHooks['UploadComplete'][] = array('slack_file_uploaded');				// When file has been uploaded
+$wgHooks['ArticleSaveComplete'][] = array('slack_article_saved');			// When article has been saved
+$wgHooks['ArticleInsertComplete'][] = array('slack_article_inserted');		// When new article has been inserted
+$wgHooks['ArticleDeleteComplete'][] = array('slack_article_deleted');		// When article has been removed
+$wgHooks['TitleMoveComplete'][] = array('slack_article_moved');				// When article has been moved
+$wgHooks['AddNewAccount'][] = array('slack_new_user_account');				// When new user account is created
+$wgHooks['BlockIpComplete'][] = array('slack_user_blocked');				// When user or IP has been blocked
+$wgHooks['UploadComplete'][] = array('slack_file_uploaded');				// When file has been uploaded
 
 $wgExtensionCredits['other'][] = array(
 	'path' => __FILE__,
@@ -110,6 +103,9 @@ function getSlackTitleText(Title $title)
  */
 function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMinor, $isWatch, $section, $flags, $revision, $status, $baseRevId)
 {
+	global $wgSlackNotificationEditedArticle;
+	if (!$wgSlackNotificationEditedArticle) return;
+
     // Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
 	// calling it also here would trigger two notifications!
 	$isNew = $status->value['new']; // This is 1 if article is new
@@ -133,6 +129,9 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
  */
 function slack_article_inserted(WikiPage $article, $user, $text, $summary, $isminor, $iswatch, $section, $flags, $revision)
 {
+	global $wgSlackNotificationAddedArticle;
+	if (!$wgSlackNotificationAddedArticle) return;
+
         // Do not announce newly added file uploads as articles...
         if ($article->getTitle()->getNsText() == "File") return true;
         
@@ -151,6 +150,9 @@ function slack_article_inserted(WikiPage $article, $user, $text, $summary, $ismi
  */
 function slack_article_deleted(WikiPage $article, $user, $reason, $id)
 {
+	global $wgSlackNotificationRemovedArticle;
+	if (!$wgSlackNotificationRemovedArticle) return;
+
 	$message = sprintf(
 		"%s has deleted article %s Reason: %s",
 		getSlackUserText($user),
@@ -166,6 +168,9 @@ function slack_article_deleted(WikiPage $article, $user, $reason, $id)
  */
 function slack_article_moved($title, $newtitle, $user, $oldid, $newid, $reason = null)
 {
+	global $wgSlackNotificationMovedArticle;
+	if (!$wgSlackNotificationMovedArticle) return;
+
 	$message = sprintf(
 		"%s has moved article %s to %s. Reason: %s",
 		getSlackUserText($user),
@@ -182,6 +187,9 @@ function slack_article_moved($title, $newtitle, $user, $oldid, $newid, $reason =
  */
 function slack_new_user_account($user, $byEmail)
 {
+	global $wgSlackNotificationNewUser;
+	if (!$wgSlackNotificationNewUser) return;
+
 	$message = sprintf(
 		"New user account %s was just created (email: %s, real name: %s)",
 		getSlackUserText($user),
@@ -197,6 +205,9 @@ function slack_new_user_account($user, $byEmail)
  */
 function slack_file_uploaded($image)
 {
+	global $wgSlackNotificationFileUpload;
+	if (!$wgSlackNotificationFileUpload) return;
+	
     global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
 	$message = sprintf(
 		"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
@@ -217,6 +228,9 @@ function slack_file_uploaded($image)
  */
 function slack_user_blocked(Block $block, $user)
 {
+	global $wgSlackNotificationBlockedUser;
+	if (!$wgSlackNotificationBlockedUser) return;
+
 	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingBlockList;
 	$message = sprintf(
 		"%s has blocked %s %s Block expiration: %s. %s",
