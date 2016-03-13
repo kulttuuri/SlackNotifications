@@ -60,6 +60,17 @@ By default when you create incoming webhook at Slack site you'll define which ro
 $wgSlackRoomName = "";
 ```
 
+### Remove additional links from user and article pages
+
+By default user and article links in the nofication message will get additional links for ex. to block user, view article history etc. You can disable either one of those by setting settings below to false.
+
+```php
+// If this is true, pages will get additional links in the notification message (edit | delete | history).
+$wgSlackIncludePageUrls = true;
+// If this is true, users will get additional links in the notification message (block | groups | talk | contribs).
+$wgSlackIncludeUserUrls = true;
+```
+
 ### Actions to notify of
 
 MediaWiki actions that will be sent notifications of into Slack. Set desired options to false to disable notifications of those actions.
