@@ -32,6 +32,10 @@ if (!isset($hpc_attached)) die();
 	$wgSlackRoomName = "";
 	// What method will be used to send the data to Slack server. By default this is "curl" which only works if you have the curl extension enabled. This can be: "curl" or "file_get_contents". Default: "curl".
 	$wgSlackSendMethod = "curl";
+	// If this is true, pages will get additional links in the notification message (edit | delete | history).
+	$wgSlackIncludePageUrls = true;
+	// If this is true, users will get additional links in the notification message (block | groups | talk | contribs).
+	$wgSlackIncludeUserUrls = true;
 	
 ##################
 # MEDIAWIKI URLS #

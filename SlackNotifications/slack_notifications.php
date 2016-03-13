@@ -31,7 +31,7 @@ $wgExtensionCredits['other'][] = array(
 	'author' => 'Aleksi Postari',
 	'description' => 'Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.',
 	'url' => 'https://github.com/kulttuuri/slack_mediawiki',
-	"version" => "1.01"
+	"version" => "1.02"
 );
 
 /**
@@ -41,17 +41,24 @@ $wgExtensionCredits['other'][] = array(
 function getSlackUserText($user)
 {
 	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserPage,
-               $wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
-	       $wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions;
+           $wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
+	       $wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions,
+	       $wgSlackIncludeUserUrls;
 	
-	return sprintf(
-		"%s (%s | %s | %s | %s)",
-		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>",
-		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockUser.$user."|block>",
-		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserRights.$user."|groups>",
-		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserTalkPage.$user."|talk>",
-		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserContributions.$user."|contribs>"
-		);
+	if ($wgSlackIncludeUserUrls)
+	{
+		return sprintf(
+			"%s (%s | %s | %s | %s)",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockUser.$user."|block>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserRights.$user."|groups>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserTalkPage.$user."|talk>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserContributions.$user."|contribs>");
+	}
+	else
+	{
+		return "<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>";
+	}
 }
 
 /**
@@ -61,9 +68,12 @@ function getSlackUserText($user)
 function getSlackArticleText(WikiPage $article)
 {
         global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory;
+               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
+               $wgSlackIncludePageUrls;
 
-        return sprintf(
+        if ($wgSlackIncludePageUrls)
+        {
+        	return sprintf(
                 "%s (%s | %s | %s)",
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">",
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingEditArticle."|edit>",
@@ -71,8 +81,12 @@ function getSlackArticleText(WikiPage $article)
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingHistory."|history>"/*,
                 "move",
                 "protect",
-                "watch"*/
-                );
+                "watch"*/);
+    	}
+    	else
+    	{
+    		return "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">";
+    	}
 }
 
 /**
@@ -82,10 +96,13 @@ function getSlackArticleText(WikiPage $article)
 function getSlackTitleText(Title $title)
 {
         global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory;
+               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
+               $wgSlackIncludePageUrls;
 
         $titleName = $title->getFullText();
-        return sprintf(
+        if ($wgSlackIncludePageUrls)
+        {
+        	return sprintf(
                 "%s (%s | %s | %s)",
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">",
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingEditArticle."|edit>",
@@ -93,8 +110,12 @@ function getSlackTitleText(Title $title)
                 "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingHistory."|history>"/*,
                 "move",
                 "protect",
-                "watch"*/
-                );
+                "watch"*/);
+        }
+        else
+        {
+        	return "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">";
+        }
 }
 
 /**
