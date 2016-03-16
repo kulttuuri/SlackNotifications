@@ -114,4 +114,4 @@ $wgWikiUrlEndingHistory             = "action=history";
 
 ## Issues / Ideas / Comments
 
-Feel free to use the "Issues" section on Github for this project to submit any issues / ideas / comments! :)
+Feel free to use the [Issues](https://github.com/kulttuuri/slack_mediawiki/issues) section on Github for this project to submit any issues / ideas / comments! :)
