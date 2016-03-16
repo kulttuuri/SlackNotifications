@@ -111,3 +111,7 @@ $wgWikiUrlEndingHistory             = "action=history";
 ## License
 
 [MIT License](http://en.wikipedia.org/wiki/MIT_License)
+
+## Issues / Ideas / Comments
+
+Feel free to use the "Issues" section on Github for this project to submit any issues / ideas / comments! :)
