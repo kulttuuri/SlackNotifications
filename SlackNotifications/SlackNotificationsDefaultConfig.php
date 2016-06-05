@@ -36,6 +36,8 @@ if (!isset($hpc_attached)) die();
 	$wgSlackIncludePageUrls = true;
 	// If this is true, users will get additional links in the notification message (block | groups | talk | contribs).
 	$wgSlackIncludeUserUrls = true;
+	// If this is true, all minor edits made to articles will not be submitted to Slack.
+	$wgSlackIgnoreMinorEdits = false;
 	
 ##################
 # MEDIAWIKI URLS #

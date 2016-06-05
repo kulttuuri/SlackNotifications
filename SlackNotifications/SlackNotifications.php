@@ -15,7 +15,7 @@
 if (!defined('MEDIAWIKI')) die();
 
 $hpc_attached = true;
-require_once("slack_default_config.php");
+require_once("SlackNotificationsDefaultConfig.php");
 
 $wgHooks['ArticleSaveComplete'][] = array('slack_article_saved');			// When article has been saved
 $wgHooks['ArticleInsertComplete'][] = array('slack_article_inserted');		// When new article has been inserted
@@ -31,7 +31,7 @@ $wgExtensionCredits['other'][] = array(
 	'author' => 'Aleksi Postari',
 	'description' => 'Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.',
 	'url' => 'https://github.com/kulttuuri/slack_mediawiki',
-	"version" => "1.02"
+	"version" => "1.03"
 );
 
 /**
@@ -125,6 +125,7 @@ function getSlackTitleText(Title $title)
 function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMinor, $isWatch, $section, $flags, $revision, $status, $baseRevId)
 {
 	global $wgSlackNotificationEditedArticle;
+	global $wgSlackIgnoreMinorEdits;
 	if (!$wgSlackNotificationEditedArticle) return;
 
     // Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
@@ -133,6 +134,9 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
 	if ($isNew == 1) {
 		return true;
 	}
+
+	// Skip minor edits if user wanted to ignore them
+	if ($isMinor && $wgSlackIgnoreMinorEdits) return;
 	
 	$message = sprintf(
 		"%s has %s article %s %s",

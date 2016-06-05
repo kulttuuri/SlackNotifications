@@ -33,7 +33,7 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 4) Add settings listed below in your `localSettings.php`. Note that it is mandatory to set these settings for this extension to work:
 
 ```php
-require_once("$IP/extensions/SlackNotifications/slack_notifications.php");
+require_once("$IP/extensions/SlackNotifications/SlackNotifications.php");
 // Required. Your Slack incoming webhook URL. Read more from here: https://api.slack.com/incoming-webhooks
 $wgSlackIncomingWebhookUrl = "";
 // Required. Name the message will appear be sent from.
@@ -69,6 +69,8 @@ By default user and article links in the nofication message will get additional 
 $wgSlackIncludePageUrls = true;
 // If this is true, users will get additional links in the notification message (block | groups | talk | contribs).
 $wgSlackIncludeUserUrls = true;
+// If this is true, all minor edits made to articles will not be submitted to Slack.
+$wgSlackIgnoreMinorEdits = false;
 ```
 
 ### Actions to notify of
