@@ -36,8 +36,8 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 require_once("$IP/extensions/SlackNotifications/SlackNotifications.php");
 // Required. Your Slack incoming webhook URL. Read more from here: https://api.slack.com/incoming-webhooks
 $wgSlackIncomingWebhookUrl = "";
-// Required. Name the message will appear be sent from.
-$wgSlackFromName = "Wiki";
+// Required. Name the message will appear to be sent from. Change this to whatever you wish it to be.
+$wgSlackFromName = $wgSitename;
 // URL into your MediaWiki installation with the trailing /.
 $wgWikiUrl		= "http://your_wiki_url/";
 // Wiki script name. Leave this to default one if you do not have URL rewriting enabled.
