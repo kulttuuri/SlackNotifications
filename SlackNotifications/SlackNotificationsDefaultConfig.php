@@ -25,7 +25,7 @@ if (!isset($hpc_attached)) die();
 	// Required. Your Slack incoming webhook URL. Read more from here: https://api.slack.com/incoming-webhooks
 	$wgSlackIncomingWebhookUrl = "";
 	// Required. Name the message will appear be sent from.
-	$wgSlackFromName = "Wiki";
+	$wgSlackFromName = $wgSitename;
 	
 	// OPTIONAL
 	// Slack room #name where you want all the notifications to go into. When you setup a webhook you can already define a room so setting this is not required. Remember to add # before the roomname.
