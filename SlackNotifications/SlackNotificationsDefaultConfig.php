@@ -38,6 +38,8 @@ if (!isset($hpc_attached)) die();
 	$wgSlackIncludeUserUrls = true;
 	// If this is true, all minor edits made to articles will not be submitted to Slack.
 	$wgSlackIgnoreMinorEdits = false;
+	// If this is set, actions by users with this permission won't cause alerts
+	$wgExcludedPermission = "";
 	
 ##################
 # MEDIAWIKI URLS #

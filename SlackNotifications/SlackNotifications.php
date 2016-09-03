@@ -144,7 +144,7 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
                 $isMinor == true ? "made minor edit to" : "edited",
                 getSlackArticleText($article),
 		$summary == "" ? "" : "Summary: $summary");
-	push_slack_notify($message, "yellow");
+	push_slack_notify($message, "yellow", $user);
 	return true;
 }
 
@@ -165,7 +165,7 @@ function slack_article_inserted(WikiPage $article, $user, $text, $summary, $ismi
 		getSlackUserText($user),
 		getSlackArticleText($article),
 		$summary == "" ? "" : "Summary: $summary");
-	push_slack_notify($message, "green");
+	push_slack_notify($message, "green", $user);
 	return true;
 }
 
@@ -183,7 +183,7 @@ function slack_article_deleted(WikiPage $article, $user, $reason, $id)
 		getSlackUserText($user),
 		getSlackArticleText($article),
 		$reason);
-	push_slack_notify($message, "red");
+	push_slack_notify($message, "red", $user);
 	return true;
 }
 
@@ -202,7 +202,7 @@ function slack_article_moved($title, $newtitle, $user, $oldid, $newid, $reason =
 		getSlackTitleText($title),
 		getSlackTitleText($newtitle),
 		$reason);
-	push_slack_notify($message, "green");
+	push_slack_notify($message, "green", $user);
 	return true;
 }
 
@@ -220,7 +220,7 @@ function slack_new_user_account($user, $byEmail)
 		getSlackUserText($user),
 		$user->getEmail(),
 		$user->getRealName());
-	push_slack_notify($message, "green");
+	push_slack_notify($message, "green", $user);
 	return true;
 }
 
@@ -243,7 +243,7 @@ function slack_file_uploaded($image)
 		round($image->getLocalFile()->size / 1024 / 1024, 3),
             $image->getLocalFile()->getDescription());
 
-	push_slack_notify($message, "green");
+	push_slack_notify($message, "green", $user);
 	return true;
 }
 
@@ -264,7 +264,7 @@ function slack_user_blocked(Block $block, $user)
 		$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
 		$block->mExpiry,
 		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockList."|List of all blocks>.");
-	push_slack_notify($message, "red");
+	push_slack_notify($message, "red", $user);
 	return true;
 }
 
@@ -274,9 +274,16 @@ function slack_user_blocked(Block $block, $user)
  * @param color Background color for the message. One of "green", "yellow" or "red". (default: yellow)
  * @see https://api.slack.com/incoming-webhooks
 */
-function push_slack_notify($message, $bgColor)
+function push_slack_notify($message, $bgColor, $user)
 {
-	global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod;
+	global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission;
+	
+	if ( $wgExcludedPermission != "" ) {
+		if ( $user->isAllowed( $wgExcludedPermission ) )
+		{
+			return; // Users with the permission suppress notifications
+		}
+	}
 
 	  $slackColor = "warning";
 	  if ($bgColor == "green") $slackColor = "good";
