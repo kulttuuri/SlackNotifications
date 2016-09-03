@@ -65,27 +65,37 @@ function getSlackUserText($user)
  * Gets nice HTML text for article containing the link to article page
  * and also into edit, delete and article history pages.
  */
-function getSlackArticleText(WikiPage $article)
+function getSlackArticleText(WikiPage $article, $diff = false)
 {
 	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
 		$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-		$wgSlackIncludePageUrls;
+		$wgWikiUrlEndingDiff, $wgSlackIncludePageUrls;
 
+	$prefix = "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText();
 	if ($wgSlackIncludePageUrls)
 	{
-		return sprintf(
-			"%s (%s | %s | %s)",
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">",
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingEditArticle."|edit>",
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingHistory."|history>"/*,
+		$out = sprintf(
+			"%s (%s | %s | %s",
+			$prefix."|".$article->getTitle()->getFullText().">",
+			$prefix."&".$wgWikiUrlEndingEditArticle."|edit>",
+			$prefix."&".$wgWikiUrlEndingDeleteArticle."|delete>",
+			$prefix."&".$wgWikiUrlEndingHistory."|history>"/*,
 				"move",
 				"protect",
 				"watch"*/);
+		if ($diff)
+		{
+			$out.= " | ".$prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
+		}
+		else
+		{
+			$out.=")";
+		}
+		return $out;
 	}
 	else
 	{
-		return "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">";
+		return $prefix."|".$article->getTitle()->getFullText().">";
 	}
 }
 
@@ -142,7 +152,7 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
 		"%s has %s article %s %s",
 		getSlackUserText($user),
 		$isMinor == true ? "made minor edit to" : "edited",
-		getSlackArticleText($article),
+		getSlackArticleText($article, true),
 		$summary == "" ? "" : "Summary: $summary");
 	push_slack_notify($message, "yellow", $user);
 	return true;
