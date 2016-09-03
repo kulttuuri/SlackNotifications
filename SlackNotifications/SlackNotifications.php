@@ -31,7 +31,7 @@ $wgExtensionCredits['other'][] = array(
 	'author' => 'Aleksi Postari',
 	'description' => 'Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.',
 	'url' => 'https://github.com/kulttuuri/slack_mediawiki',
-	"version" => "1.03"
+	"version" => "1.04"
 );
 
 /**
