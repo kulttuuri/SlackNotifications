@@ -243,7 +243,7 @@ function slack_file_uploaded($image)
 		round($image->getLocalFile()->size / 1024 / 1024, 3),
             $image->getLocalFile()->getDescription());
 
-	push_slack_notify($message, "green", $user);
+	push_slack_notify($message, "green", $wgUser);
 	return true;
 }
 
