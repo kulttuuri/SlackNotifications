@@ -73,6 +73,15 @@ $wgSlackIncludeUserUrls = true;
 $wgSlackIgnoreMinorEdits = false;
 ```
 
+### Disable notifications from certain user roles
+
+By default notifications from all users will be sent to your Slack room. If you wish to exclude users in certain group to not send notification of any actions, you can set the group with the setting below.
+
+```php
+// If this is set, actions by users with this permission won't cause alerts
+$wgExcludedPermission = "";
+```
+
 ### Actions to notify of
 
 MediaWiki actions that will be sent notifications of into Slack. Set desired options to false to disable notifications of those actions.
