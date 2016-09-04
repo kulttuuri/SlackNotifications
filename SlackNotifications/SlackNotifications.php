@@ -85,13 +85,13 @@ function getSlackArticleText(WikiPage $article, $diff = false)
 				"watch"*/);
 		if ($diff)
 		{
-			$out.= " | ".$prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
+			$out .= " | ".$prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
 		}
 		else
 		{
-			$out.=")";
+			$out .= ")";
 		}
-		return $out;
+		return $out."\n";
 	}
 	else
 	{
@@ -135,7 +135,7 @@ function getSlackTitleText(Title $title)
 function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMinor, $isWatch, $section, $flags, $revision, $status, $baseRevId)
 {
 	global $wgSlackNotificationEditedArticle;
-	global $wgSlackIgnoreMinorEdits;
+	global $wgSlackIgnoreMinorEdits, $wgSlackIncludeDiffSize;
 	if (!$wgSlackNotificationEditedArticle) return;
 
 	// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
@@ -154,6 +154,12 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
 		$isMinor == true ? "made minor edit to" : "edited",
 		getSlackArticleText($article, true),
 		$summary == "" ? "" : "Summary: $summary");
+	if ($wgSlackIncludeDiffSize)
+	{		
+		$message .= sprintf(
+			" (%+d bytes)",
+			$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize());
+	}
 	push_slack_notify($message, "yellow", $user);
 	return true;
 }
@@ -164,7 +170,7 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
  */
 function slack_article_inserted(WikiPage $article, $user, $text, $summary, $isminor, $iswatch, $section, $flags, $revision)
 {
-	global $wgSlackNotificationAddedArticle;
+	global $wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
 	if (!$wgSlackNotificationAddedArticle) return;
 
 	// Do not announce newly added file uploads as articles...
@@ -175,6 +181,12 @@ function slack_article_inserted(WikiPage $article, $user, $text, $summary, $ismi
 		getSlackUserText($user),
 		getSlackArticleText($article),
 		$summary == "" ? "" : "Summary: $summary");
+	if ($wgSlackIncludeDiffSize)
+	{		
+		$message .= sprintf(
+			" (%d bytes)",
+			$article->getRevision()->getSize());
+	}
 	push_slack_notify($message, "green", $user);
 	return true;
 }
