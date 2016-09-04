@@ -64,6 +64,7 @@ if (!isset($hpc_attached)) die();
 	$wgWikiUrlEndingEditArticle         = "action=edit";
 	$wgWikiUrlEndingDeleteArticle       = "action=delete";
 	$wgWikiUrlEndingHistory             = "action=history";
+	$wgWikiUrlEndingDiff                = "diff=prev&oldid=";
 
 #####################
 # MEDIAWIKI ACTIONS #
