@@ -41,9 +41,9 @@ $wgExtensionCredits['other'][] = array(
 function getSlackUserText($user)
 {
 	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserPage,
-           $wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
-	       $wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions,
-	       $wgSlackIncludeUserUrls;
+		$wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
+		$wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions,
+		$wgSlackIncludeUserUrls;
 	
 	if ($wgSlackIncludeUserUrls)
 	{
@@ -67,26 +67,26 @@ function getSlackUserText($user)
  */
 function getSlackArticleText(WikiPage $article)
 {
-        global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-               $wgSlackIncludePageUrls;
+	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
+		$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
+		$wgSlackIncludePageUrls;
 
-        if ($wgSlackIncludePageUrls)
-        {
-        	return sprintf(
-                "%s (%s | %s | %s)",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingEditArticle."|edit>",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingHistory."|history>"/*,
-                "move",
-                "protect",
-                "watch"*/);
-    	}
-    	else
-    	{
-    		return "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">";
-    	}
+	if ($wgSlackIncludePageUrls)
+	{
+		return sprintf(
+			"%s (%s | %s | %s)",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingEditArticle."|edit>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingDeleteArticle."|delete>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."&".$wgWikiUrlEndingHistory."|history>"/*,
+				"move",
+				"protect",
+				"watch"*/);
+	}
+	else
+	{
+		return "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText()."|".$article->getTitle()->getFullText().">";
+	}
 }
 
 /**
@@ -95,27 +95,27 @@ function getSlackArticleText(WikiPage $article)
  */
 function getSlackTitleText(Title $title)
 {
-        global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-               $wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-               $wgSlackIncludePageUrls;
+	global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
+		$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
+		$wgSlackIncludePageUrls;
 
-        $titleName = $title->getFullText();
-        if ($wgSlackIncludePageUrls)
-        {
-        	return sprintf(
-                "%s (%s | %s | %s)",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingEditArticle."|edit>",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-                "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingHistory."|history>"/*,
-                "move",
-                "protect",
-                "watch"*/);
-        }
-        else
-        {
-        	return "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">";
-        }
+	$titleName = $title->getFullText();
+	if ($wgSlackIncludePageUrls)
+	{
+		return sprintf(
+			"%s (%s | %s | %s)",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingEditArticle."|edit>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingDeleteArticle."|delete>",
+			"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingHistory."|history>"/*,
+					"move",
+					"protect",
+					"watch"*/);
+	}
+	else
+	{
+		return "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">";
+	}
 }
 
 /**
@@ -128,7 +128,7 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
 	global $wgSlackIgnoreMinorEdits;
 	if (!$wgSlackNotificationEditedArticle) return;
 
-    // Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
+	// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
 	// calling it also here would trigger two notifications!
 	$isNew = $status->value['new']; // This is 1 if article is new
 	if ($isNew == 1) {
@@ -141,8 +141,8 @@ function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMi
 	$message = sprintf(
 		"%s has %s article %s %s",
 		getSlackUserText($user),
-                $isMinor == true ? "made minor edit to" : "edited",
-                getSlackArticleText($article),
+		$isMinor == true ? "made minor edit to" : "edited",
+		getSlackArticleText($article),
 		$summary == "" ? "" : "Summary: $summary");
 	push_slack_notify($message, "yellow", $user);
 	return true;
@@ -157,9 +157,9 @@ function slack_article_inserted(WikiPage $article, $user, $text, $summary, $ismi
 	global $wgSlackNotificationAddedArticle;
 	if (!$wgSlackNotificationAddedArticle) return;
 
-        // Do not announce newly added file uploads as articles...
-        if ($article->getTitle()->getNsText() == "File") return true;
-        
+	// Do not announce newly added file uploads as articles...
+	if ($article->getTitle()->getNsText() == "File") return true;
+	
 	$message = sprintf(
 		"%s has created article %s %s",
 		getSlackUserText($user),
@@ -233,7 +233,7 @@ function slack_file_uploaded($image)
 	global $wgSlackNotificationFileUpload;
 	if (!$wgSlackNotificationFileUpload) return;
 
-    global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
+	global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
 	$message = sprintf(
 		"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
 		getSlackUserText($wgUser->mName),
@@ -241,7 +241,7 @@ function slack_file_uploaded($image)
 		$image->getLocalFile()->getTitle(),
 		$image->getLocalFile()->getMimeType(),
 		round($image->getLocalFile()->size / 1024 / 1024, 3),
-            $image->getLocalFile()->getDescription());
+		$image->getLocalFile()->getDescription());
 
 	push_slack_notify($message, "green", $wgUser);
 	return true;
@@ -260,7 +260,7 @@ function slack_user_blocked(Block $block, $user)
 	$message = sprintf(
 		"%s has blocked %s %s Block expiration: %s. %s",
 		getSlackUserText($user),
-                getSlackUserText($block->getTarget()),
+		getSlackUserText($block->getTarget()),
 		$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
 		$block->mExpiry,
 		"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockList."|List of all blocks>.");
@@ -273,7 +273,7 @@ function slack_user_blocked(Block $block, $user)
  * @param message Message to be sent.
  * @param color Background color for the message. One of "green", "yellow" or "red". (default: yellow)
  * @see https://api.slack.com/incoming-webhooks
-*/
+ */
 function push_slack_notify($message, $bgColor, $user)
 {
 	global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission;
@@ -285,25 +285,25 @@ function push_slack_notify($message, $bgColor, $user)
 		}
 	}
 
-	  $slackColor = "warning";
-	  if ($bgColor == "green") $slackColor = "good";
-	  else if ($bgColor == "red") $slackColor = "danger";
+	$slackColor = "warning";
+	if ($bgColor == "green") $slackColor = "good";
+	else if ($bgColor == "red") $slackColor = "danger";
 	
-	  $optionalChannel = "";
-      if (!empty($wgSlackRoomName)) {
-      	$optionalChannel = ' "channel": "'.$wgSlackRoomName.'", ';
-      }
+	$optionalChannel = "";
+	if (!empty($wgSlackRoomName)) {
+		$optionalChannel = ' "channel": "'.$wgSlackRoomName.'", ';
+	}
 
-      // Convert " to ' in the message to be sent as otherwise JSON formatting would break.
-      $message = str_replace('"', "'", $message);
+	// Convert " to ' in the message to be sent as otherwise JSON formatting would break.
+	$message = str_replace('"', "'", $message);
 
-	  $post = sprintf('payload={"text": "%s", "username": "%s",'.$optionalChannel.' "attachments": [ { "color": "%s" } ]}',
-	  		  urlencode($message),
-	  		  urlencode($wgSlackFromName),
-	  		  urlencode($slackColor));
+	$post = sprintf('payload={"text": "%s", "username": "%s",'.$optionalChannel.' "attachments": [ { "color": "%s" } ]}',
+	urlencode($message),
+	urlencode($wgSlackFromName),
+	urlencode($slackColor));
 
-	  // Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
-	  if ($wgSlackSendMethod == "file_get_contents") {
+	// Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
+	if ($wgSlackSendMethod == "file_get_contents") {
 		$extradata = array(
 			'http' => array(
 			'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
@@ -313,19 +313,19 @@ function push_slack_notify($message, $bgColor, $user)
 		);
 		$context = stream_context_create($extradata);
 		$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
-	  }
-	  // Call the Slack API through cURL (default way). Note that you will need to have cURL enabled for this to work.
-	  else {
-	      $h = curl_init();
-	      curl_setopt($h, CURLOPT_URL, $wgSlackIncomingWebhookUrl);
-	      curl_setopt($h, CURLOPT_POST, 1);
-	      curl_setopt($h, CURLOPT_POSTFIELDS, $post);
-		  // I know this shouldn't be done, but because it wouldn't otherwise work because of SSL...
-		  curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
-		  curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
-		  // ... Aaand execute the curl script!
-	      curl_exec($h);
-	      curl_close($h);
-  	  }
+	}
+	// Call the Slack API through cURL (default way). Note that you will need to have cURL enabled for this to work.
+	else {
+		$h = curl_init();
+		curl_setopt($h, CURLOPT_URL, $wgSlackIncomingWebhookUrl);
+		curl_setopt($h, CURLOPT_POST, 1);
+		curl_setopt($h, CURLOPT_POSTFIELDS, $post);
+		// I know this shouldn't be done, but because it wouldn't otherwise work because of SSL...
+		curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
+		// ... Aaand execute the curl script!
+		curl_exec($h);
+		curl_close($h);
+	}
 }
 ?>

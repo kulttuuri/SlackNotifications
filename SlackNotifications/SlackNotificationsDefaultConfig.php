@@ -61,9 +61,9 @@ if (!isset($hpc_attached)) die();
 	$wgWikiUrlEndingUserTalkPage        = "User_talk:";
 	$wgWikiUrlEndingUserContributions   = "Special:Contributions/";
 	$wgWikiUrlEndingBlockList           = "Special:BlockList";
-        $wgWikiUrlEndingEditArticle         = "action=edit";
-        $wgWikiUrlEndingDeleteArticle       = "action=delete";
-        $wgWikiUrlEndingHistory             = "action=history";
+	$wgWikiUrlEndingEditArticle         = "action=edit";
+	$wgWikiUrlEndingDeleteArticle       = "action=delete";
+	$wgWikiUrlEndingHistory             = "action=history";
 
 #####################
 # MEDIAWIKI ACTIONS #
