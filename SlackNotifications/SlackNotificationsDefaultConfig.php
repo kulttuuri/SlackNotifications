@@ -86,4 +86,6 @@ if (!isset($hpc_attached)) die();
 	$wgSlackNotificationEditedArticle = true;
 	// File uploaded
 	$wgSlackNotificationFileUpload = true;
+	// Include the size of the diff when pages are edited
+	$wgSlackIncludeDiffSize = true;
 ?>
