@@ -265,7 +265,7 @@ class SlackNotifications
 	 */
 	static function push_slack_notify($message, $bgColor, $user)
 	{
-		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename;
+		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename, $wgSlackEmoji;
 		
 		if ( $wgExcludedPermission != "" ) {
 			if ( $user->isAllowed( $wgExcludedPermission ) )
@@ -292,10 +292,15 @@ class SlackNotifications
 			$slackFromName = $wgSitename;
 		}
 		
-		$post = sprintf('payload={"text": "%s", "username": "%s",'.$optionalChannel.' "attachments": [ { "color": "%s" } ]}',
+		$post = sprintf('payload={"text": "%s", "username": "%s",'.$optionalChannel.' "attachments": [ { "color": "%s" } ]',
 		urlencode($message),
 		urlencode($slackFromName),
 		urlencode($slackColor));
+		if ( $wgSlackEmoji != "" )
+		{
+			$post .= sprintf( ', "icon_emoji": "%s"', $wgSlackEmoji );
+		}
+		$post .= '}';
 
 		// Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
 		if ($wgSlackSendMethod == "file_get_contents") {
