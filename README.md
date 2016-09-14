@@ -73,6 +73,14 @@ $wgSlackIncludeUserUrls = true;
 $wgSlackIgnoreMinorEdits = false;
 ```
 
+### Set emoji for notification
+
+By default notification in Slack has the default emoji for notification. You can customize this with the setting below. You can find all available emojis from [here](http://www.webpagefx.com/tools/emoji-cheat-sheet/).
+
+```php
+$wgSlackEmoji = "";
+```
+
 ### Disable notifications from certain user roles
 
 By default notifications from all users will be sent to your Slack room. If you wish to exclude users in certain group to not send notification of any actions, you can set the group with the setting below.
