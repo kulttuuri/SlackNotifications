@@ -40,6 +40,8 @@ if (!isset($hpc_attached)) die();
 	$wgSlackIgnoreMinorEdits = false;
 	// If this is set, actions by users with this permission won't cause alerts
 	$wgExcludedPermission = "";
+	// If this is set, the given emoji-string will be used as the avatar of the Slack-bot for the message. Example: ":ghost:"
+	$wgSlackEmoji = "";
 	
 ##################
 # MEDIAWIKI URLS #

@@ -50,6 +50,7 @@
 		"SlackFromName": "",
 		"SlackRoomName": "",
 		"SlackSendMethod": "curl",
+		"SlackEmoji": "",
 		"SlackIncludePageUrls": true,
 		"SlackIncludeUserUrls": true,
 		"SlackIgnoreMinorEdits": false,
