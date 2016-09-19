@@ -86,7 +86,7 @@ $wgSlackEmoji = "";
 By default we show size of the edit. You can hide this information with the setting below.
 
 ```php
-$wgSlackIncludeDiffSize = "";
+$wgSlackIncludeDiffSize = false;
 ```
 
 ### Disable notifications from certain user roles
