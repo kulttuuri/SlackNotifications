@@ -81,6 +81,14 @@ By default notification in Slack has the default emoji for notification. You can
 $wgSlackEmoji = "";
 ```
 
+### Show edit size
+
+By default we show size of the edit. You can hide this information with the setting below.
+
+```php
+$wgSlackIncludeDiffSize = "";
+```
+
 ### Disable notifications from certain user roles
 
 By default notifications from all users will be sent to your Slack room. If you wish to exclude users in certain group to not send notification of any actions, you can set the group with the setting below.
@@ -125,6 +133,7 @@ $wgWikiUrlEndingBlockList           = "Special:BlockList";
 $wgWikiUrlEndingEditArticle         = "action=edit";
 $wgWikiUrlEndingDeleteArticle       = "action=delete";
 $wgWikiUrlEndingHistory             = "action=history";
+$wgWikiUrlEndingDiff                = "diff=prev&oldid=";
 ```
 
 ## License
