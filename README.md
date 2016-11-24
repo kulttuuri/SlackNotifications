@@ -24,7 +24,7 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 
 ## How to install
 
-1) Create a new Slack Incoming Webhook. When setting up the webhook, define channel where you want the notifications to go into. You can setup a new webhook on [this page](https://teachergaming.slack.com/services/new/incoming-webhook).
+1) Create a new Slack Incoming Webhook. When setting up the webhook, define channel where you want the notifications to go into. You can setup a new webhook on [this page](https://slack.com/services/new/incoming-webhook).
 
 2) After setting up the Webhook you will get a Webhook URL. Copy that URL as you will need it in step 4.
 
