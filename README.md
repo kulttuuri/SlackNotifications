@@ -8,17 +8,16 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 
 ## Supported MediaWiki operations to send notifications
 
-* When article is added.
-* When article is removed.
-* When article is moved.
-* When article is edited.
-* When new user is added.
-* When user is blocked.
-* When file is uploaded.
+* Article is added, removed, moved or edited.
+* Article protection settings are changed.
+* New user is added.
+* User is blocked.
+* File is uploaded.
+* ... and each notification can be individually enabled or disabled :)
 
 ## Requirements
 
-* [cURL](http://curl.haxx.se/). This extension also supports using file_get_contents for sending the data. See the configuration parameter $wgSlackSendMethod below to change this.
+* [cURL](http://curl.haxx.se/). This extension also supports using `file_get_contents` for sending the data. See the configuration parameter `$wgSlackSendMethod` below to change this.
 * MediaWiki 1.8+ (tested with version 1.8, also tested and works with 1.25+)
 * Apache should have NE (NoEscape) flag on to prevent issues in URLs. By default you should have this enabled.
 
@@ -28,7 +27,7 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 
 2) After setting up the Webhook you will get a Webhook URL. Copy that URL as you will need it in step 4.
 
-3) Send folder SlackNotifications into your `mediawiki_installation/extensions` folder.
+3) [Download latest release of this extension](https://github.com/kulttuuri/slack_mediawiki/archive/master.zip), uncompress the archive and move folder `SlackNotifications` into your `mediawiki_installation/extensions` folder.
 
 4) Add settings listed below in your `localSettings.php`. Note that it is mandatory to set these settings for this extension to work:
 
@@ -117,6 +116,8 @@ $wgSlackNotificationMovedArticle = true;
 $wgSlackNotificationEditedArticle = true;
 // File uploaded
 $wgSlackNotificationFileUpload = true;
+// Article protection settings changed
+$wgSlackNotificationProtectedArticle = true;
 ```
 	
 ## Additional MediaWiki URL Settings

@@ -1,6 +1,6 @@
 {
 	"name": "Slack Notifications",
-	"version": "1.05",
+	"version": "1.06",
 	"author": "Aleksi Postari",
 	"url": "https://github.com/kulttuuri/slack_mediawiki",
 	"description": "Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.",
@@ -43,6 +43,11 @@
 			[
 				"SlackNotifications::slack_file_uploaded"
 			]
+		],
+		"ArticleProtectComplete": [
+			[
+				"SlackNotifications::slack_article_protected"
+			]
 		]
 	},
 	"config": {
@@ -74,6 +79,7 @@
 		"SlackNotificationMovedArticle": true,
 		"SlackNotificationEditedArticle": true,
 		"SlackNotificationFileUpload": true,
+		"SlackNotificationProtectedArticle": true,
 		"SlackIncludeDiffSize": true
 	},
 	"manifest_version": 1
