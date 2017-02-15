@@ -310,9 +310,9 @@ class SlackNotifications
 			$slackFromName = $wgSitename;
 		}
 		
-		$post = sprintf('payload={"text": "%s", "username": "%s",'.$optionalChannel.' "attachments": [ { "color": "%s" } ]',
-		urlencode($message),
+		$post = sprintf('payload={"username": "%s",'.$optionalChannel.' "attachments": [ { "text": "%s", "color": "%s" } ]',
 		urlencode($slackFromName),
+		urlencode($message),
 		urlencode($slackColor));
 		if ( $wgSlackEmoji != "" )
 		{
