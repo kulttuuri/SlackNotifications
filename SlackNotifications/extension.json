@@ -9,12 +9,12 @@
 		"SlackNotifications": "SlackNotificationsCore.php"
 	},
 	"Hooks": {
-		"ArticleSaveComplete": [
+		"PageContentSaveComplete": [
 			[
 				"SlackNotifications::slack_article_saved"
 			]
 		],
-		"ArticleInsertComplete": [
+		"PageContentInsertComplete": [
 			[
 				"SlackNotifications::slack_article_inserted"
 			]
