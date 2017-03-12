@@ -219,14 +219,29 @@ class SlackNotifications
 	 */
 	static function slack_new_user_account($user, $byEmail)
 	{
-		global $wgSlackNotificationNewUser;
+		global $wgSlackNotificationNewUser, $wgSlackShowNewUserEmail, $wgSlackShowNewUserFullName, $wgSlackShowNewUserIP;
 		if (!$wgSlackNotificationNewUser) return;
 
+		$email = "";
+		$realname = "";
+		$ipaddress = "";
+		try { $email = $user->getEmail(); } catch (Exception $e) {}
+		try { $realname = $user->getRealName(); } catch (Exception $e) {}
+		try { $ipaddress = $user->getRequest()->getIP(); } catch (Exception $e) {}
+		$messageExtra = "";
+		if ($wgSlackShowNewUserEmail || $wgSlackShowNewUserFullName || $wgSlackShowNewUserIP) {
+			$messageExtra = "(";
+			if ($wgSlackShowNewUserEmail) $messageExtra .= $email . ", ";
+			if ($wgSlackShowNewUserFullName) $messageExtra .= $realname . ", ";
+			if ($wgSlackShowNewUserIP) $messageExtra .= $ipaddress . ", ";
+			$messageExtra = substr($messageExtra, 0, -2); // Remove trailing , 
+			$messageExtra .= ")";
+		}
+
 		$message = sprintf(
-			"New user account %s was just created (email: %s, real name: %s)",
+			"New user account %s was just created %s",
 			self::getSlackUserText($user),
-			$user->getEmail(),
-			$user->getRealName());
+			$messageExtra);
 		self::push_slack_notify($message, "green", $user);
 		return true;
 	}

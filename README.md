@@ -88,6 +88,19 @@ By default we show size of the edit. You can hide this information with the sett
 $wgSlackIncludeDiffSize = false;
 ```
 
+### Disable new user extra information
+
+By default we show full name, email and IP address of newly created user in the notification. You can individually disable each of these using the settings below. This is helpful for example in situation where you do not want to expose this information for users in your Slack channel.
+
+```php
+// If this is true, newly created user email address is added to notification.
+$wgSlackShowNewUserEmail = true;
+// If this is true, newly created user full name is added to notification.
+$wgSlackShowNewUserFullName = true;
+// If this is true, newly created user IP address is added to notification.
+$wgSlackShowNewUserIP = true;
+```
+
 ### Disable notifications from certain user roles
 
 By default notifications from all users will be sent to your Slack room. If you wish to exclude users in certain group to not send notification of any actions, you can set the group with the setting below.
@@ -136,6 +149,10 @@ $wgWikiUrlEndingDeleteArticle       = "action=delete";
 $wgWikiUrlEndingHistory             = "action=history";
 $wgWikiUrlEndingDiff                = "diff=prev&oldid=";
 ```
+
+## Contributors
+
+[@jacksga](https://github.com/jacksga) [@Meneth](https://github.com/Meneth)
 
 ## License
 
