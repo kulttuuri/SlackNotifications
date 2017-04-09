@@ -115,6 +115,11 @@ class SlackNotifications
 		// Skip minor edits if user wanted to ignore them
 		if ($isMinor && $wgSlackIgnoreMinorEdits) return;
 		
+		if ( $article->getRevision()->getPrevious() == NULL )
+		{
+			return; // Skip edits that are just refreshing the page
+		}
+		
 		$message = sprintf(
 			"%s has %s article %s %s",
 			self::getSlackUserText($user),
