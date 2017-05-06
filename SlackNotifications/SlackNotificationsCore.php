@@ -38,7 +38,7 @@ class SlackNotifications
 			$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
 			$wgWikiUrlEndingDiff, $wgSlackIncludePageUrls;
 
-		$prefix = "<".$wgWikiUrl.$wgWikiUrlEnding.$article->getTitle()->getFullText();
+		$prefix = "<".$wgWikiUrl.$wgWikiUrlEnding.str_replace(" ", "_", $article->getTitle()->getFullText());
 		if ($wgSlackIncludePageUrls)
 		{
 			$out = sprintf(
