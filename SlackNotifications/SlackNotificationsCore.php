@@ -303,7 +303,7 @@ class SlackNotifications
 	 */
 	static function push_slack_notify($message, $bgColor, $user)
 	{
-		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename, $wgSlackEmoji;
+		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename, $wgSlackEmoji, $wgHTTPProxy;
 		
 		if ( $wgExcludedPermission != "" ) {
 			if ( $user->isAllowed( $wgExcludedPermission ) )
@@ -361,6 +361,11 @@ class SlackNotifications
 			// I know this shouldn't be done, but because it wouldn't otherwise work because of SSL...
 			curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
 			curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
+			// Set proxy for the request if user had proxy URL set
+			if ($wgHTTPProxy) {
+				curl_setopt($h, CURLOPT_PROXY, $wgHTTPProxy);
+				curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
+			}
 			// ... Aaand execute the curl script!
 			curl_exec($h);
 			curl_close($h);

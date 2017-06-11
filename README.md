@@ -150,6 +150,10 @@ $wgWikiUrlEndingHistory             = "action=history";
 $wgWikiUrlEndingDiff                = "diff=prev&oldid=";
 ```
 
+## Setting proxy
+
+To add proxy for requests, you can use the normal MediaWiki way of setting proxy, as described [here](https://www.mediawiki.org/wiki/Manual:$wgHTTPProxy). Basically this means that you just need to set `$wgHTTPProxy` parameter in your `localSettings.php` file to point to your proxy.
+
 ## Contributors
 
 [@jacksga](https://github.com/jacksga) [@Meneth](https://github.com/Meneth)
