@@ -58,7 +58,7 @@ class SlackNotifications
 			{
 				$out .= ")";
 			}
-			return $out."\n";
+			return $out."\\n";
 		}
 		else
 		{
