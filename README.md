@@ -105,6 +105,11 @@ $wgSlackShowNewUserIP = true;
 
 By default notifications from all users will be sent to your Slack room. If you wish to exclude users in certain group to not send notification of any actions, you can set the group with the setting below.
 
+```php
+// If this is set, actions by users with this permission won't cause alerts
+$wgExcludedPermission = "";
+```
+
 ### Disable notifications from certain pages / namespaces
 
 You can exclude notifications from certain namespaces / articles by adding them into this array. Note: This targets all pages starting with the name.
@@ -112,11 +117,6 @@ You can exclude notifications from certain namespaces / articles by adding them 
 ```php
 // Actions (add, edit, modify) won't be notified to Slack room from articles starting with these names
 $wgSlackExcludeNotificationsFrom = ["User:", "Weirdgroup"];
-```
-
-```php
-// If this is set, actions by users with this permission won't cause alerts
-$wgExcludedPermission = "";
 ```
 
 ### Actions to notify of
