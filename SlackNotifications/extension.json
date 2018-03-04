@@ -1,6 +1,6 @@
 {
 	"name": "Slack Notifications",
-	"version": "1.10",
+	"version": "1.11",
 	"author": "Aleksi Postari",
 	"url": "https://github.com/kulttuuri/slack_mediawiki",
 	"description": "Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.",
@@ -60,6 +60,7 @@
 		"SlackIncludeUserUrls": true,
 		"SlackIgnoreMinorEdits": false,
 		"ExcludedPermission": "",
+		"SlackExcludeNotificationsFrom": [],
 		"WikiUrl": "",
 		"WikiUrlEnding": "index.php?title=",
 		"WikiUrlEndingUserRights": "Special%3AUserRights&user=",

@@ -105,6 +105,14 @@ class SlackNotifications
 		global $wgSlackIgnoreMinorEdits, $wgSlackIncludeDiffSize;
 		if (!$wgSlackNotificationEditedArticle) return;
 
+		// Discard notifications from excluded pages
+		global $wgSlackExcludeNotificationsFrom;
+		if (count($wgSlackExcludeNotificationsFrom) > 0) {
+			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+			}
+		}
+
 		// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
 		// calling it also here would trigger two notifications!
 		$isNew = $status->value['new']; // This is 1 if article is new
@@ -145,6 +153,14 @@ class SlackNotifications
 		global $wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
 		if (!$wgSlackNotificationAddedArticle) return;
 
+		// Discard notifications from excluded pages
+		global $wgSlackExcludeNotificationsFrom;
+		if (count($wgSlackExcludeNotificationsFrom) > 0) {
+			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+			}
+		}
+
 		// Do not announce newly added file uploads as articles...
 		if ($article->getTitle()->getNsText() == "File") return true;
 		
@@ -171,6 +187,14 @@ class SlackNotifications
 	{
 		global $wgSlackNotificationRemovedArticle;
 		if (!$wgSlackNotificationRemovedArticle) return;
+
+		// Discard notifications from excluded pages
+		global $wgSlackExcludeNotificationsFrom;
+		if (count($wgSlackExcludeNotificationsFrom) > 0) {
+			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+			}
+		}
 
 		$message = sprintf(
 			"%s has deleted article %s Reason: %s",
