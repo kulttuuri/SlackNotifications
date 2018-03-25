@@ -214,6 +214,15 @@ class SlackNotifications
 		global $wgSlackNotificationMovedArticle;
 		if (!$wgSlackNotificationMovedArticle) return;
 
+		// Discard notifications from excluded pages
+		global $wgSlackExcludeNotificationsFrom;
+		if (count($wgSlackExcludeNotificationsFrom) > 0) {
+			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
+				if (0 === strpos($title, $currentExclude)) return;
+				if (0 === strpos($newtitle, $currentExclude)) return;
+			}
+		}
+
 		$message = sprintf(
 			"%s has moved article %s to %s. Reason: %s",
 			self::getSlackUserText($user),

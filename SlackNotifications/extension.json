@@ -1,6 +1,6 @@
 {
 	"name": "Slack Notifications",
-	"version": "1.11",
+	"version": "1.12",
 	"author": "Aleksi Postari",
 	"url": "https://github.com/kulttuuri/slack_mediawiki",
 	"description": "Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.",
