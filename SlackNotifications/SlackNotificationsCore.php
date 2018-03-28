@@ -404,5 +404,72 @@ class SlackNotifications
 			curl_close($h);
 		}
 	}
+
+	/**
+	 * Sends the message to the Slack webhook
+	 *
+	 * @param string $message Message to be sent.
+	 * @param string $colour Deprecated
+	 * @param User $user The Mediawiki user object.
+	 * @param array $attach Array of attachment objects to be sent.
+	 * @return void
+	 * @see https://api.slack.com/incoming-webhooks
+	 */
+	static function send_slack_notification($message, $colour, $user, $attach = array())
+	{
+		$config   = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig('SlackNotifications');
+		$mwconfig = MediaWikiServices::getInstance()->getMainConfig();
+
+		$wgExcludedPermission      = $mwconfig->get("ExcludedPermission");
+		$wgSitename                = $mwconfig->get("Sitename");
+		$wgHTTPProxy               = $mwconfig->get("HTTPProxy");
+		$wgSlackIncomingWebhookUrl = $config->get("SlackIncomingWebhookUrl");
+		$wgSlackFromName           = $config->get("SlackFromName");
+		$wgSlackRoomName           = $config->get("SlackRoomName");
+		$wgSlackSendMethod         = $config->get("SlackSendMethod");
+		$wgSlackEmoji              = $config->get("SlackEmoji");
+		
+		if ($wgExcludedPermission && $user->isAllowed($wgExcludedPermission))
+			return; // Users with the permission suppress notifications
+		}
+
+		$post_data = array(
+			"text"        => $message,
+			"channel"     => $wgSlackRoomName ?: null,
+			"username"    => $slackFromName   ?: $wgSitename,
+			"icon_emoji"  => $wgSlackEmoji    ?: null,
+			"attachments" => $attach,
+		);
+		$post_data = json_encode($post_data);
+
+		// Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
+		if ($wgSlackSendMethod == "file_get_contents") {
+			$options = array(
+				"http" => array(
+					"header"  => "Content-type: application/json",
+					"method"  => "POST",
+					"content" => $post_data,
+				),
+			);
+			if ($wgHTTPProxy) {
+				$options["http"]["proxy"]           = $wgHTTPProxy;
+				$options["http"]["request_fulluri"] = true;
+			}
+			$context = stream_context_create($options);
+			$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
+		}
+		// Call the Slack API through cURL (default way). Note that you will need to have cURL enabled for this to work.
+		else {
+			$h = curl_init();
+			curl_setopt_array($h, array(
+				CURLOPT_URL        => $wgSlackIncomingWebhookUrl,
+				CURLOPT_POST       => true,
+				CURLOPT_POSTFIELDS => $post_data,
+				CURLOPT_HTTPHEADER => array("Content-Type: application/json"),
+				CURLOPT_PROXY      => $wgHTTPProxy ?: null,
+			));
+			curl_exec($h);
+			curl_close($h);
+		}
+	}
 }
-?>
