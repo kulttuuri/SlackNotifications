@@ -1,4 +1,7 @@
 <?php
+use MediaWiki\MediaWikiServices;
+use Config;
+
 class SlackNotifications
 {
 	/**
@@ -429,7 +432,7 @@ class SlackNotifications
 		$wgSlackSendMethod         = $config->get("SlackSendMethod");
 		$wgSlackEmoji              = $config->get("SlackEmoji");
 		
-		if ($wgExcludedPermission && $user->isAllowed($wgExcludedPermission))
+		if ($wgExcludedPermission && $user->isAllowed($wgExcludedPermission)) {
 			return; // Users with the permission suppress notifications
 		}
 
