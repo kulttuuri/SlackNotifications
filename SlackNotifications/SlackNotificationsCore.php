@@ -51,24 +51,32 @@ class SlackNotifications
 	 */
 	static function getSlackUserText($user)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserPage,
-			$wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
-			$wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions,
-			$wgSlackIncludeUserUrls;
-		
-		if ($wgSlackIncludeUserUrls)
-		{
+		$config                           = self::getExtConfig();
+		$wgWikiUrl                        = $config->get("WikiUrl");
+		$wgWikiUrlEnding                  = $config->get("WikiUrlEnding");
+		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
+		$wgWikiUrlEndingUserPage          = $config->get("WikiUrlEndingUserPage");
+		$wgWikiUrlEndingBlockUser         = $config->get("WikiUrlEndingBlockUser");
+		$wgWikiUrlEndingUserRights        = $config->get("WikiUrlEndingUserRights");
+		$wgWikiUrlEndingUserTalkPage      = $config->get("WikiUrlEndingUserTalkPage");
+		$wgWikiUrlEndingUserContributions = $config->get("WikiUrlEndingUserContributions");
+
+		if ($wgSlackIncludeUserUrls) {
 			return sprintf(
-				"%s (%s | %s | %s | %s)",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockUser.$user."|block>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserRights.$user."|groups>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserTalkPage.$user."|talk>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserContributions.$user."|contribs>");
-		}
-		else
-		{
-			return "<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>";
+				"<%s|%s> (<%s|block> | <%s|groups> | <%s|talk> | <%s|contribs>)",
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserPage . urlencode($user),
+				$user,
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingBlockUser . urlencode($user),
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserRights . urlencode($user),
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserTalkPage . urlencode($user),
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserContributions . urlencode($user)
+			);
+		} else {
+			return sprintf(
+				"<%s|%s>",
+				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserPage . $user,
+				$user
+			);
 		}
 	}
 
@@ -78,35 +86,34 @@ class SlackNotifications
 	 */
 	static function getSlackArticleText(WikiPage $article, $diff = false)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-			$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-			$wgWikiUrlEndingDiff, $wgSlackIncludePageUrls;
+		$config                       = self::getExtConfig();
+		$wgWikiUrl                    = $config->get("WikiUrl");
+		$wgWikiUrlEnding              = $config->get("WikiUrlEnding");
+		$wgWikiUrlEndingDiff          = $config->get("WikiUrlEndingDiff");
+		$wgWikiUrlEndingHistory       = $config->get("WikiUrlEndingHistory");
+		$wgSlackIncludePageUrls       = $config->get("SlackIncludePageUrls");
+		$wgWikiUrlEndingEditArticle   = $config->get("WikiUrlEndingEditArticle");
+		$wgWikiUrlEndingDeleteArticle = $config->get("WikiUrlEndingDeleteArticle");
 
-		$prefix = "<".$wgWikiUrl.$wgWikiUrlEnding.str_replace(" ", "_", $article->getTitle()->getFullText());
+		$prefix = $wgWikiUrl . $wgWikiUrlEnding . urlencode($article->getTitle()->getFullText());
 		if ($wgSlackIncludePageUrls)
 		{
 			$out = sprintf(
-				"%s (%s | %s | %s",
-				$prefix."|".$article->getTitle()->getFullText().">",
-				$prefix."&".$wgWikiUrlEndingEditArticle."|edit>",
-				$prefix."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-				$prefix."&".$wgWikiUrlEndingHistory."|history>"/*,
-					"move",
-					"protect",
-					"watch"*/);
-			if ($diff)
-			{
-				$out .= " | ".$prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
-			}
-			else
-			{
+				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>",
+				$prefix,
+				$article->getTitle()->getFullText(),
+				$prefix . "&" . $wgWikiUrlEndingEditArticle,
+				$prefix . "&" . $wgWikiUrlEndingDeleteArticle,
+				$prefix . "&" . $wgWikiUrlEndingHistory
+			);
+			if ($diff) {
+				$out .= sprintf(" | <%s|diff>)", $prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID());
+			} else {
 				$out .= ")";
 			}
 			return $out."\\n";
-		}
-		else
-		{
-			return $prefix."|".$article->getTitle()->getFullText().">";
+		} else {
+			return sprintf("<%s|%s>", $prefix, $article->getTitle()->getFullText());
 		}
 	}
 
@@ -116,26 +123,26 @@ class SlackNotifications
 	 */
 	static function getSlackTitleText(Title $title)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-			$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-			$wgSlackIncludePageUrls;
+		$config                       = self::getExtConfig();
+		$wgWikiUrl                    = $config->get("WikiUrl");
+		$wgWikiUrlEnding              = $config->get("WikiUrlEnding");
+		$wgSlackIncludePageUrls       = $config->get("SlackIncludePageUrls");
+		$wgWikiUrlEndingHistory       = $config->get("WikiUrlEndingHistory");
+		$wgWikiUrlEndingEditArticle   = $config->get("WikiUrlEndingEditArticle");
+		$wgWikiUrlEndingDeleteArticle = $config->get("WikiUrlEndingDeleteArticle");
 
 		$titleName = $title->getFullText();
-		if ($wgSlackIncludePageUrls)
-		{
+		if ($wgSlackIncludePageUrls) {
 			return sprintf(
-				"%s (%s | %s | %s)",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingEditArticle."|edit>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingHistory."|history>"/*,
-						"move",
-						"protect",
-						"watch"*/);
-		}
-		else
-		{
-			return "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">";
+				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>)",
+				$wgWikiUrl . $wgWikiUrlEnding . $titleName,
+				$titleName,
+				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingEditArticle,
+				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingDeleteArticle,
+				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingHistory
+			);
+		} else {
+			return sprintf("<%s|%s>", $wgWikiUrl . $wgWikiUrlEnding . $titleName, $titleName);
 		}
 	}
 
