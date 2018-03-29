@@ -1,9 +1,50 @@
 <?php
 use MediaWiki\MediaWikiServices;
-use Config;
 
 class SlackNotifications
 {
+	/** @var The services object */
+	private static $mwservices = null;
+
+	/** @var Config $mwconfig The mediawiki site config object */
+	private static $mwconfig = null;
+
+	/** @var Config $snconfig The extension config object */
+	private static $snconfig = null;
+
+
+	/**
+	 * Initializes (if needed) and returns the site config object
+	 *
+	 * @return Config
+	 */
+	static function getMwConfig()
+	{
+		if (self::$mwconfig == null) {
+			if (self::$mwservices === null) {
+				self::$mwservices = MediaWikiServices::getInstance();
+			}
+			self::$mwconfig = self::$mwservices->getMainConfig();
+		}
+		return self::$mwconfig;
+	}
+
+	/**
+	 * Initializes (if needed) and returns the extension config object
+	 *
+	 * @return Config
+	 */
+	static function getExtConfig()
+	{
+		if (self::$snconfig == null) {
+			if (self::$mwservices === null) {
+				self::$mwservices = MediaWikiServices::getInstance();
+			}
+			self::$snconfig = self::$mwservices->getConfigFactory()->makeConfig('SlackNotifications');
+		}
+		return self::$snconfig;
+	}
+
 	/**
 	 * Gets nice HTML text for user containing the link to user page
 	 * and also links to user site, groups editing, talk and contribs pages.
@@ -143,7 +184,7 @@ class SlackNotifications
 				" (%+d bytes)",
 				$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize());
 		}
-		self::push_slack_notify($message, "yellow", $user);
+		self::send_slack_notification($message, "yellow", $user);
 		return true;
 	}
 
@@ -178,7 +219,7 @@ class SlackNotifications
 				" (%d bytes)",
 				$article->getRevision()->getSize());
 		}
-		self::push_slack_notify($message, "green", $user);
+		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
 
@@ -204,7 +245,7 @@ class SlackNotifications
 			self::getSlackUserText($user),
 			self::getSlackArticleText($article),
 			$reason);
-		self::push_slack_notify($message, "red", $user);
+		self::send_slack_notification($message, "red", $user);
 		return true;
 	}
 
@@ -232,7 +273,7 @@ class SlackNotifications
 			self::getSlackTitleText($title),
 			self::getSlackTitleText($newtitle),
 			$reason);
-		self::push_slack_notify($message, "green", $user);
+		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
 
@@ -250,7 +291,7 @@ class SlackNotifications
 			$protect ? "changed protection of" : "removed protection of",
 			self::getSlackArticleText($article),
 			$reason);
-		self::push_slack_notify($message, $user);
+		self::send_slack_notification($message, "yellow", $user);
 		return true;
 	}
 
@@ -283,7 +324,7 @@ class SlackNotifications
 			"New user account %s was just created %s",
 			self::getSlackUserText($user),
 			$messageExtra);
-		self::push_slack_notify($message, "green", $user);
+		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
 
@@ -306,7 +347,7 @@ class SlackNotifications
 			round($image->getLocalFile()->size / 1024 / 1024, 3),
 			$image->getLocalFile()->getDescription());
 
-		self::push_slack_notify($message, "green", $wgUser);
+		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
 
@@ -327,85 +368,8 @@ class SlackNotifications
 			$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
 			$block->mExpiry,
 			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockList."|List of all blocks>.");
-		self::push_slack_notify($message, "red", $user);
+		self::send_slack_notification($message, "red", $user);
 		return true;
-	}
-
-	/**
-	 * Sends the message into Slack room.
-	 * @param message Message to be sent.
-	 * @param color Background color for the message. One of "green", "yellow" or "red". (default: yellow)
-	 * @see https://api.slack.com/incoming-webhooks
-	 */
-	static function push_slack_notify($message, $bgColor, $user)
-	{
-		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename, $wgSlackEmoji, $wgHTTPProxy;
-		
-		if ( $wgExcludedPermission != "" ) {
-			if ( $user->isAllowed( $wgExcludedPermission ) )
-			{
-				return; // Users with the permission suppress notifications
-			}
-		}
-
-		$slackColor = "warning";
-		if ($bgColor == "green") $slackColor = "good";
-		else if ($bgColor == "red") $slackColor = "danger";
-		
-		$optionalChannel = "";
-		if (!empty($wgSlackRoomName)) {
-			$optionalChannel = ' "channel": "'.$wgSlackRoomName.'", ';
-		}
-
-		// Convert " to ' in the message to be sent as otherwise JSON formatting would break.
-		$message = str_replace('"', "'", $message);
-
-		$slackFromName = $wgSlackFromName;
-		if ( $slackFromName == "" )
-		{
-			$slackFromName = $wgSitename;
-		}
-		
-		$post = sprintf('payload={"username": "%s",'.$optionalChannel.' "attachments": [ { "text": "%s", "color": "%s" } ]',
-		urlencode($slackFromName),
-		urlencode($message),
-		urlencode($slackColor));
-		if ( $wgSlackEmoji != "" )
-		{
-			$post .= sprintf( ', "icon_emoji": "%s"', $wgSlackEmoji );
-		}
-		$post .= '}';
-
-		// Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
-		if ($wgSlackSendMethod == "file_get_contents") {
-			$extradata = array(
-				'http' => array(
-				'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-				'method'  => 'POST',
-				'content' => $post,
-				),
-			);
-			$context = stream_context_create($extradata);
-			$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
-		}
-		// Call the Slack API through cURL (default way). Note that you will need to have cURL enabled for this to work.
-		else {
-			$h = curl_init();
-			curl_setopt($h, CURLOPT_URL, $wgSlackIncomingWebhookUrl);
-			curl_setopt($h, CURLOPT_POST, 1);
-			curl_setopt($h, CURLOPT_POSTFIELDS, $post);
-			// I know this shouldn't be done, but because it wouldn't otherwise work because of SSL...
-			curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
-			// Set proxy for the request if user had proxy URL set
-			if ($wgHTTPProxy) {
-				curl_setopt($h, CURLOPT_PROXY, $wgHTTPProxy);
-				curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
-			}
-			// ... Aaand execute the curl script!
-			curl_exec($h);
-			curl_close($h);
-		}
 	}
 
 	/**
@@ -420,8 +384,8 @@ class SlackNotifications
 	 */
 	static function send_slack_notification($message, $colour, $user, $attach = array())
 	{
-		$config   = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig('SlackNotifications');
-		$mwconfig = MediaWikiServices::getInstance()->getMainConfig();
+		$mwconfig = self::getMwConfig();
+		$config   = self::getExtConfig();
 
 		$wgExcludedPermission      = $mwconfig->get("ExcludedPermission");
 		$wgSitename                = $mwconfig->get("Sitename");
