@@ -18,7 +18,7 @@ class SlackNotifications
 	 *
 	 * @return Config
 	 */
-	static function getMwConfig()
+	private static function getMwConfig()
 	{
 		if (self::$mwconfig == null) {
 			if (self::$mwservices === null) {
@@ -34,7 +34,7 @@ class SlackNotifications
 	 *
 	 * @return Config
 	 */
-	static function getExtConfig()
+	private static function getExtConfig()
 	{
 		if (self::$snconfig == null) {
 			if (self::$mwservices === null) {
@@ -49,7 +49,7 @@ class SlackNotifications
 	 * Gets nice HTML text for user containing the link to user page
 	 * and also links to user site, groups editing, talk and contribs pages.
 	 */
-	static function getSlackUserText($user)
+	private static function getSlackUserText($user)
 	{
 		$config                           = self::getExtConfig();
 		$wgWikiUrl                        = $config->get("WikiUrl");
@@ -84,7 +84,7 @@ class SlackNotifications
 	 * Gets nice HTML text for article containing the link to article page
 	 * and also into edit, delete and article history pages.
 	 */
-	static function getSlackArticleText(WikiPage $article, $diff = false)
+	private static function getSlackArticleText(WikiPage $article, $diff = false)
 	{
 		$config                       = self::getExtConfig();
 		$wgWikiUrl                    = $config->get("WikiUrl");
@@ -121,7 +121,7 @@ class SlackNotifications
 	 * Gets nice HTML text for title object containing the link to article page
 	 * and also into edit, delete and article history pages.
 	 */
-	static function getSlackTitleText(Title $title)
+	private static function getSlackTitleText(Title $title)
 	{
 		$config                       = self::getExtConfig();
 		$wgWikiUrl                    = $config->get("WikiUrl");
@@ -150,8 +150,20 @@ class SlackNotifications
 	 * Occurs after the save page request has been processed.
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/PageContentSaveComplete
 	 */
-	static function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMinor, $isWatch, $section, $flags, $revision, $status, $baseRevId)
-	{
+	public static function slack_article_saved(
+		WikiPage $article,
+		User $user,
+		Content $content,
+		$summary,
+		$isMinor,
+		$isWatch,
+		$section,
+		$flags,
+		Revision $revision,
+		Status $status,
+		$baseRevId,
+		$undidRevId = 0
+	) {
 		global $wgSlackNotificationEditedArticle;
 		global $wgSlackIgnoreMinorEdits, $wgSlackIncludeDiffSize;
 		if (!$wgSlackNotificationEditedArticle) return;
@@ -199,8 +211,17 @@ class SlackNotifications
 	 * Occurs after a new article has been created.
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleInsertComplete
 	 */
-	static function slack_article_inserted(WikiPage $article, $user, $text, $summary, $isminor, $iswatch, $section, $flags, $revision)
-	{
+	public static function slack_article_inserted(
+		WikiPage $article,
+		User $user,
+		Content $text,
+		$summary,
+		$isminor,
+		$iswatch,
+		$section,
+		$flags,
+		Revision $revision
+	) {
 		global $wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
 		if (!$wgSlackNotificationAddedArticle) return;
 
@@ -234,8 +255,14 @@ class SlackNotifications
 	 * Occurs after the delete article request has been processed.
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleDeleteComplete
 	 */
-	static function slack_article_deleted(WikiPage $article, $user, $reason, $id)
-	{
+	public static function slack_article_deleted(
+		WikiPage $article,
+		User $user,
+		$reason,
+		$id,
+		Content $content,
+		LogEntry $logEntry
+	) {
 		global $wgSlackNotificationRemovedArticle;
 		if (!$wgSlackNotificationRemovedArticle) return;
 
@@ -260,8 +287,15 @@ class SlackNotifications
 	 * Occurs after a page has been moved.
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/TitleMoveComplete
 	 */
-	static function slack_article_moved($title, $newtitle, $user, $oldid, $newid, $reason = null)
-	{
+	public static function slack_article_moved(
+		Title $title,
+		Title $newtitle,
+		User $user,
+		$oldid,
+		$newid,
+		$reason = null,
+		Revision $revision = null
+	) {
 		global $wgSlackNotificationMovedArticle;
 		if (!$wgSlackNotificationMovedArticle) return;
 
@@ -288,8 +322,13 @@ class SlackNotifications
 	 * Occurs after the protect article request has been processed.
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ArticleProtectComplete
 	 */
-	static function slack_article_protected($article, $user, $protect, $reason, $moveonly)
-	{
+	public static function slack_article_protected(
+		WikiPage $article,
+		User $user,
+		$protect,
+		$reason,
+		$moveonly = false
+	) {
 		global $wgSlackNotificationProtectedArticle;
 		if (!$wgSlackNotificationProtectedArticle) return;
 		$message = sprintf(
@@ -306,7 +345,7 @@ class SlackNotifications
 	 * Called after a user account is created.
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/AddNewAccount
 	 */
-	static function slack_new_user_account($user, $byEmail)
+	public static function slack_new_user_account(User $user, $byEmail)
 	{
 		global $wgSlackNotificationNewUser, $wgSlackShowNewUserEmail, $wgSlackShowNewUserFullName, $wgSlackShowNewUserIP;
 		if (!$wgSlackNotificationNewUser) return;
@@ -339,7 +378,7 @@ class SlackNotifications
 	 * Called when a file upload has completed.
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/UploadComplete
 	 */
-	static function slack_file_uploaded($image)
+	public static function slack_file_uploaded(UploadBase $image)
 	{
 		global $wgSlackNotificationFileUpload;
 		if (!$wgSlackNotificationFileUpload) return;
@@ -362,7 +401,7 @@ class SlackNotifications
 	 * Occurs after the request to block an IP or user has been processed
 	 * @see http://www.mediawiki.org/wiki/Manual:MediaWiki_hooks/BlockIpComplete
 	 */
-	static function slack_user_blocked(Block $block, $user)
+	public static function slack_user_blocked(Block $block, User $user)
 	{
 		global $wgSlackNotificationBlockedUser;
 		if (!$wgSlackNotificationBlockedUser) return;
