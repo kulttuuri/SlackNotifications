@@ -5,6 +5,9 @@
 	"url": "https://github.com/kulttuuri/slack_mediawiki",
 	"description": "Sends Slack notifications for selected actions that have occurred in your MediaWiki sites.",
 	"type": "other",
+	"ConfigRegistry": {
+		"SlackNotifications": "GlobalVarConfig::newInstance"
+	},
 	"AutoloadClasses": {
 		"SlackNotifications": "SlackNotificationsCore.php"
 	},
