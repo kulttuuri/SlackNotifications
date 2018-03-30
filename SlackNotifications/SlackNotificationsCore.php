@@ -164,44 +164,48 @@ class SlackNotifications
 		$baseRevId,
 		$undidRevId = 0
 	) {
-		global $wgSlackNotificationEditedArticle;
-		global $wgSlackIgnoreMinorEdits, $wgSlackIncludeDiffSize;
-		if (!$wgSlackNotificationEditedArticle) return;
+		$config                           = self::getExtConfig();
+		$wgSlackIncludeDiffSize           = $config->get("SlackIncludeDiffSize");
+		$wgSlackIgnoreMinorEdits          = $config->get("SlackIgnoreMinorEdits");
+		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
+		$wgSlackNotificationEditedArticle = $config->get("SlackNotificationEditedArticle");;
+
+		if (!$wgSlackNotificationEditedArticle) {
+			return;
+		}
 
 		// Discard notifications from excluded pages
-		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+		if (is_array($wgSlackExcludeNotificationsFrom)) {
+			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) {
+					return;
+				}
 			}
 		}
 
 		// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
 		// calling it also here would trigger two notifications!
-		$isNew = $status->value['new']; // This is 1 if article is new
-		if ($isNew == 1) {
+		// Skip minor edits if user wanted to ignore them
+		if ((int)$status->value['new'] === 1 || ($isMinor && $wgSlackIgnoreMinorEdits)) {
 			return true;
 		}
 
-		// Skip minor edits if user wanted to ignore them
-		if ($isMinor && $wgSlackIgnoreMinorEdits) return;
-		
-		if ( $article->getRevision()->getPrevious() == NULL )
-		{
+		if ($article->getRevision()->getPrevious() === null) {
 			return; // Skip edits that are just refreshing the page
 		}
 		
 		$message = sprintf(
 			"%s has %s article %s %s",
 			self::getSlackUserText($user),
-			$isMinor == true ? "made minor edit to" : "edited",
+			$isMinor === true ? "made minor edit to" : "edited",
 			self::getSlackArticleText($article, true),
-			$summary == "" ? "" : "Summary: $summary");
-		if ($wgSlackIncludeDiffSize)
-		{		
+			$summary === "" ? "" : "Summary: $summary"
+		);
+		if ($wgSlackIncludeDiffSize) {
 			$message .= sprintf(
 				" (%+d bytes)",
-				$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize());
+				$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize()
+			);
 		}
 		self::send_slack_notification($message, "yellow", $user);
 		return true;
@@ -222,30 +226,41 @@ class SlackNotifications
 		$flags,
 		Revision $revision
 	) {
-		global $wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
-		if (!$wgSlackNotificationAddedArticle) return;
+		$config                           = self::getExtConfig();
+		$wgSlackIncludeDiffSize           = $config->get("SlackIncludeDiffSize");
+		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
+		$wgSlackNotificationAddedArticle  = $config->get("SlackNotificationAddedArticle");;
+
+		if (!$wgSlackNotificationAddedArticle) {
+			return;
+		}
 
 		// Discard notifications from excluded pages
-		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+		if (is_array($wgSlackExcludeNotificationsFrom)) {
+			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) {
+					return;
+				}
 			}
 		}
 
 		// Do not announce newly added file uploads as articles...
-		if ($article->getTitle()->getNsText() == "File") return true;
-		
+		if ($article->getTitle()->getNsText() === "File") {
+			return;
+		}
+
 		$message = sprintf(
 			"%s has created article %s %s",
 			self::getSlackUserText($user),
 			self::getSlackArticleText($article),
-			$summary == "" ? "" : "Summary: $summary");
-		if ($wgSlackIncludeDiffSize)
-		{		
+			$summary == "" ? "" : "Summary: $summary"
+		);
+
+		if ($wgSlackIncludeDiffSize) {
 			$message .= sprintf(
 				" (%d bytes)",
-				$article->getRevision()->getSize());
+				$article->getRevision()->getSize()
+			);
 		}
 		self::send_slack_notification($message, "green", $user);
 		return true;
@@ -263,14 +278,20 @@ class SlackNotifications
 		Content $content,
 		LogEntry $logEntry
 	) {
-		global $wgSlackNotificationRemovedArticle;
-		if (!$wgSlackNotificationRemovedArticle) return;
+		$config                            = self::getExtConfig();
+		$wgSlackExcludeNotificationsFrom   = $config->get("SlackExcludeNotificationsFrom");
+		$wgSlackNotificationRemovedArticle = $config->get("SlackNotificationRemovedArticle");;
+
+		if (!$wgSlackNotificationRemovedArticle) {
+			return;
+		}
 
 		// Discard notifications from excluded pages
-		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+		if (is_array($wgSlackExcludeNotificationsFrom)) {
+			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) {
+					return;
+				}
 			}
 		}
 
@@ -278,7 +299,8 @@ class SlackNotifications
 			"%s has deleted article %s Reason: %s",
 			self::getSlackUserText($user),
 			self::getSlackArticleText($article),
-			$reason);
+			$reason
+		);
 		self::send_slack_notification($message, "red", $user);
 		return true;
 	}
@@ -296,15 +318,23 @@ class SlackNotifications
 		$reason = null,
 		Revision $revision = null
 	) {
-		global $wgSlackNotificationMovedArticle;
-		if (!$wgSlackNotificationMovedArticle) return;
+		$config                           = self::getExtConfig();
+		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
+		$wgSlackNotificationMovedArticle  = $config->get("SlackNotificationMovedArticle");;
+
+		if (!$wgSlackNotificationMovedArticle) {
+			return;
+		}
 
 		// Discard notifications from excluded pages
-		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($title, $currentExclude)) return;
-				if (0 === strpos($newtitle, $currentExclude)) return;
+		if (is_array($wgSlackExcludeNotificationsFrom)) {
+			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
+				if (0 === strpos($title, $currentExclude)) {
+					return;
+				}
+				if (0 === strpos($newtitle, $currentExclude)) {
+					return;
+				}
 			}
 		}
 
@@ -313,7 +343,8 @@ class SlackNotifications
 			self::getSlackUserText($user),
 			self::getSlackTitleText($title),
 			self::getSlackTitleText($newtitle),
-			$reason);
+			$reason
+		);
 		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
@@ -329,14 +360,30 @@ class SlackNotifications
 		$reason,
 		$moveonly = false
 	) {
-		global $wgSlackNotificationProtectedArticle;
-		if (!$wgSlackNotificationProtectedArticle) return;
+		$config                              = self::getExtConfig();
+		$wgSlackExcludeNotificationsFrom     = $config->get("SlackExcludeNotificationsFrom");
+		$wgSlackNotificationProtectedArticle = $config->get("SlackNotificationProtectedArticle");;
+
+		if (!$wgSlackNotificationProtectedArticle) {
+			return;
+		}
+
+		// Discard notifications from excluded pages
+		if (is_array($wgSlackExcludeNotificationsFrom)) {
+			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
+				if (0 === strpos($article->getTitle(), $currentExclude)) {
+					return;
+				}
+			}
+		}
+
 		$message = sprintf(
 			"%s has %s article %s. Reason: %s",
 			self::getSlackUserText($user),
 			$protect ? "changed protection of" : "removed protection of",
 			self::getSlackArticleText($article),
-			$reason);
+			$reason
+		);
 		self::send_slack_notification($message, "yellow", $user);
 		return true;
 	}
@@ -347,21 +394,44 @@ class SlackNotifications
 	 */
 	public static function slack_new_user_account(User $user, $byEmail)
 	{
-		global $wgSlackNotificationNewUser, $wgSlackShowNewUserEmail, $wgSlackShowNewUserFullName, $wgSlackShowNewUserIP;
-		if (!$wgSlackNotificationNewUser) return;
+		$config                     = self::getExtConfig();
+		$wgSlackShowNewUserIP       = $config->get("SlackShowNewUserIP");
+		$wgSlackShowNewUserEmail    = $config->get("SlackShowNewUserEmail");
+		$wgSlackNotificationNewUser = $config->get("SlackNotificationNewUser");
+		$wgSlackShowNewUserFullName = $config->get("SlackShowNewUserFullName");
 
-		$email = "";
-		$realname = "";
-		$ipaddress = "";
-		try { $email = $user->getEmail(); } catch (Exception $e) {}
-		try { $realname = $user->getRealName(); } catch (Exception $e) {}
-		try { $ipaddress = $user->getRequest()->getIP(); } catch (Exception $e) {}
+		if (!$wgSlackNotificationNewUser) {
+			return;
+		}
+
+		try {
+			$email = $user->getEmail();
+		} catch (Exception $e) {
+			$email = "";
+		}
+		try {
+			$realname = $user->getRealName();
+		} catch (Exception $e) {
+			$realname = "";
+		}
+		try {
+			$ipaddress = $user->getRequest()->getIP();
+		} catch (Exception $e) {
+			$ipaddress = "";
+		}
+
 		$messageExtra = "";
 		if ($wgSlackShowNewUserEmail || $wgSlackShowNewUserFullName || $wgSlackShowNewUserIP) {
 			$messageExtra = "(";
-			if ($wgSlackShowNewUserEmail) $messageExtra .= $email . ", ";
-			if ($wgSlackShowNewUserFullName) $messageExtra .= $realname . ", ";
-			if ($wgSlackShowNewUserIP) $messageExtra .= $ipaddress . ", ";
+			if ($wgSlackShowNewUserEmail && $email) {
+				$messageExtra .= $email . ", ";
+			}
+			if ($wgSlackShowNewUserFullName && $realname) {
+				$messageExtra .= $realname . ", ";
+			}
+			if ($wgSlackShowNewUserIP && $ipaddress) {
+				$messageExtra .= $ipaddress . ", ";
+			}
 			$messageExtra = substr($messageExtra, 0, -2); // Remove trailing , 
 			$messageExtra .= ")";
 		}
@@ -369,7 +439,8 @@ class SlackNotifications
 		$message = sprintf(
 			"New user account %s was just created %s",
 			self::getSlackUserText($user),
-			$messageExtra);
+			$messageExtra
+		);
 		self::send_slack_notification($message, "green", $user);
 		return true;
 	}
@@ -380,10 +451,16 @@ class SlackNotifications
 	 */
 	public static function slack_file_uploaded(UploadBase $image)
 	{
-		global $wgSlackNotificationFileUpload;
-		if (!$wgSlackNotificationFileUpload) return;
+		$config                        = self::getExtConfig();
+		$wgWikiUrl                     = $config->get("WikiUrl");
+		$wgWikiUrlEnding               = $config->get("WikiUrlEnding");
+		$wgSlackNotificationFileUpload = $config->get("SlackNotificationFileUpload");
 
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
+		if (!$wgSlackNotificationFileUpload) {
+			return;
+		}
+
+		global $wgUser;
 		$message = sprintf(
 			"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
 			self::getSlackUserText($wgUser->mName),
@@ -391,9 +468,10 @@ class SlackNotifications
 			$image->getLocalFile()->getTitle(),
 			$image->getLocalFile()->getMimeType(),
 			round($image->getLocalFile()->size / 1024 / 1024, 3),
-			$image->getLocalFile()->getDescription());
+			$image->getLocalFile()->getDescription()
+		);
 
-		self::send_slack_notification($message, "green", $user);
+		self::send_slack_notification($message, "green", $wgUser);
 		return true;
 	}
 
@@ -403,17 +481,24 @@ class SlackNotifications
 	 */
 	public static function slack_user_blocked(Block $block, User $user)
 	{
-		global $wgSlackNotificationBlockedUser;
-		if (!$wgSlackNotificationBlockedUser) return;
+		$config                         = self::getExtConfig();
+		$wgWikiUrl                      = $config->get("WikiUrl");
+		$wgWikiUrlEnding                = $config->get("WikiUrlEnding");
+		$wgWikiUrlEndingBlockList       = $config->get("WikiUrlEndingBlockList");
+		$wgSlackNotificationBlockedUser = $config->get("SlackNotificationBlockedUser");
 
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingBlockList;
+		if (!$wgSlackNotificationBlockedUser) {
+			return;
+		}
+
 		$message = sprintf(
-			"%s has blocked %s %s Block expiration: %s. %s",
+			"%s has blocked %s%s. Block expiration: %s. <%s|List of all blocks>.",
 			self::getSlackUserText($user),
 			self::getSlackUserText($block->getTarget()),
-			$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
+			$block->mReason == "" ? "" : "with reason '$block->mReason'",
 			$block->mExpiry,
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockList."|List of all blocks>.");
+			$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingBlockList
+		);
 		self::send_slack_notification($message, "red", $user);
 		return true;
 	}
@@ -428,11 +513,10 @@ class SlackNotifications
 	 * @return void
 	 * @see https://api.slack.com/incoming-webhooks
 	 */
-	static function send_slack_notification($message, $colour, $user, $attach = array())
+	private static function send_slack_notification($message, $colour, $user, $attach = array())
 	{
 		$mwconfig = self::getMwConfig();
 		$config   = self::getExtConfig();
-
 		$wgExcludedPermission      = $mwconfig->get("ExcludedPermission");
 		$wgSitename                = $mwconfig->get("Sitename");
 		$wgHTTPProxy               = $mwconfig->get("HTTPProxy");
@@ -449,7 +533,7 @@ class SlackNotifications
 		$post_data = array(
 			"text"        => $message,
 			"channel"     => $wgSlackRoomName ?: null,
-			"username"    => $slackFromName   ?: $wgSitename,
+			"username"    => $wgSlackFromName ?: $wgSitename,
 			"icon_emoji"  => $wgSlackEmoji    ?: null,
 			"attachments" => $attach,
 		);
