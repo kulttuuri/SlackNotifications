@@ -12,6 +12,9 @@ class SlackNotifications
 	/** @var Config The extension config object */
 	private static $snconfig = null;
 
+	const RED = "#b21717";
+	const YELLOW = "#d6be37";
+	const GREEN = "#299b29";
 
 	/**
 	 * Initializes (if needed) and returns the site config object
@@ -47,31 +50,26 @@ class SlackNotifications
 
 	/**
 	 * Gets nice HTML text for user containing the link to user page
-	 * and also links to user site, groups editing, talk and contribs pages.
+	 * or links to user site, groups editing, talk and contribs pages.
 	 * @param User $user The user object
-	 * @return string
+	 * @param bool $actionLinks Whether to return the user link or the user action links
+	 * @return string Links formatted for a Slack message
 	 */
-	private static function getSlackUserText(User $user)
+	private static function getSlackUserText(User $user, $actionLinks = false)
 	{
-		$config                 = self::getExtConfig();
-		$wgSlackIncludeUserUrls = $config->get("SlackIncludeUserUrls");
-
-		$title   = $user->getUserPage();
-		$block   = new SpecialBlock();
-		$rights  = new UserrightsPage();
-		$contrib = new SpecialContributions();
-
-		if ($wgSlackIncludeUserUrls) {
+		if ($actionLinks) {
+			$block   = new SpecialBlock();
+			$rights  = new UserrightsPage();
+			$contrib = new SpecialContributions();
 			return sprintf(
-				"<%s|%s> (<%s|block> | <%s|groups> | <%s|talk> | <%s|contribs>)",
-				$title->getFullUrl(),
-				$user,
+				"<%s|block> | <%s|groups> | <%s|talk> | <%s|contribs>",
 				$block->getPageTitle()->getFullUrl() . "/" . urlencode($user),
 				$rights->getPageTitle()->getFullUrl() . "/" . urlencode($user),
 				$user->getTalkPage()->getFullUrl(),
-				$contrib->getPageTitle()->getFullUrl . "/" . urlencode($user)
+				$contrib->getPageTitle()->getFullUrl() . "/" . urlencode($user)
 			);
 		} else {
+			$title = $user->getUserPage();
 			return sprintf("<%s|%s>", $title->getFullUrl(), $user);
 		}
 	}
@@ -83,17 +81,13 @@ class SlackNotifications
 	 * @param bool $diff Whether to include a link to the diff
 	 * @return string
 	 */
-	private static function getSlackArticleText(WikiPage $article, $diff = false)
+	private static function getSlackArticleText(WikiPage $article, $actionLinks = false, $diff = false)
 	{
-		$config                 = self::getExtConfig();
-		$wgSlackIncludePageUrls = $config->get("SlackIncludePageUrls");
-
 		$title = $article->getTitle();
-		if ($wgSlackIncludePageUrls) {
+
+		if ($actionLinks) {
 			$out = sprintf(
-				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>",
-				$title->getFullUrl(),
-				$title->getFullText(),
+				"<%s|edit> | <%s|delete> | <%s|history>",
 				$title->getFullUrl(array("action"=>"edit")),
 				$title->getFullUrl(array("action"=>"delete")),
 				$title->getFullUrl(array("action"=>"history"))
@@ -101,13 +95,11 @@ class SlackNotifications
 			if ($diff) {
 				$revid = $article->getRevision()->getID();
 				$out .= sprintf(
-					" | <%s|diff>)",
+					" | <%s|diff>",
 					$title->getFullUrl(array("type"=>"revision", "diff"=>$revid))
 				);
-			} else {
-				$out .= ")";
 			}
-			return $out."\n";
+			return $out;
 		} else {
 			return sprintf("<%s|%s>", $title->getFullUrl, $title->getFullText());
 		}
@@ -119,16 +111,11 @@ class SlackNotifications
 	 * @param Title $title The title object of the page
 	 * @return string
 	 */
-	private static function getSlackTitleText(Title $title)
+	private static function getSlackTitleText(Title $title, $actionLinks = false)
 	{
-		$config                 = self::getExtConfig();
-		$wgSlackIncludePageUrls = $config->get("SlackIncludePageUrls");
-
-		if ($wgSlackIncludePageUrls) {
+		if ($actionLinks) {
 			return sprintf(
-				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>)",
-				$title->getFullUrl(),
-				$title->getFullText(),
+				"<%s|edit> | <%s|delete> | <%s|history>",
 				$title->getFullUrl(array("action"=>"edit")),
 				$title->getFullUrl(array("action"=>"delete")),
 				$title->getFullUrl(array("action"=>"history"))
@@ -171,9 +158,12 @@ class SlackNotifications
 	) {
 		$config                           = self::getExtConfig();
 		$wgSlackIncludeDiffSize           = $config->get("SlackIncludeDiffSize");
+		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackIgnoreMinorEdits          = $config->get("SlackIgnoreMinorEdits");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationEditedArticle = $config->get("SlackNotificationEditedArticle");;
+
 
 		if (!$wgSlackNotificationEditedArticle) {
 			return;
@@ -188,9 +178,7 @@ class SlackNotifications
 			}
 		}
 
-		// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
-		// calling it also here would trigger two notifications!
-		// Skip minor edits if user wanted to ignore them
+		// Skip new articles (handled elsewhere) and minor edits if user wanted to ignore them
 		if ((int)$status->value['new'] === 1 || ($isMinor && $wgSlackIgnoreMinorEdits)) {
 			return;
 		}
@@ -199,20 +187,40 @@ class SlackNotifications
 			return; // Skip edits that are just refreshing the page
 		}
 
-		$message = sprintf(
-			"%s has %s article %s %s",
-			self::getSlackUserText($user),
-			$isMinor === true ? "made minor edit to" : "edited",
-			self::getSlackArticleText($article, true),
-			$summary === "" ? "" : "Summary: $summary"
+		$message = "A page was updated";
+		$attach[] = array(
+			"fallback" => sprintf("%s has edited %s", $user, $article->getTitle()->getFullText()),
+			"color" => self::YELLOW,
+			"title" => $article->getTitle()->getFullText(),
+			"title_link" => $article->getTitle()->getFullUrl(),
+			"text" => sprintf(
+				"This was %s by %s %s\nSummary: %s",
+				($isMinor ? "a minor edit" : "an edit"),
+				self::getSlackUserText($user),
+				(
+					$wgSlackIncludeDiffSize ?
+					sprintf("(%+d bytes change)", $revision->getSize() - $revision->getPrevious()->getSize()) :
+					""
+				),
+				$summary ? "_{$summary}_" : "none provided"
+			),
+			"fields" => array(),
 		);
-		if ($wgSlackIncludeDiffSize) {
-			$message .= sprintf(
-				" (%+d bytes)",
-				$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize()
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "Page Links",
+				"short" => "true",
+				"value" => self::getSlackArticleText($article, true, true),
 			);
 		}
-		self::send_slack_notification($message, "yellow", $user);
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+		self::send_slack_notification($message, "yellow", $user, $attach);
 	}
 
 	/**
@@ -242,6 +250,8 @@ class SlackNotifications
 	) {
 		$config                           = self::getExtConfig();
 		$wgSlackIncludeDiffSize           = $config->get("SlackIncludeDiffSize");
+		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationAddedArticle  = $config->get("SlackNotificationAddedArticle");;
 
@@ -263,19 +273,35 @@ class SlackNotifications
 			return;
 		}
 
-		$message = sprintf(
-			"%s has created article %s %s",
-			self::getSlackUserText($user),
-			self::getSlackArticleText($article),
-			$summary == "" ? "" : "Summary: $summary"
+		$message = "A page was created";
+		$attach[] = array(
+			"fallback" => sprintf("%s has created article %s", $user, $article->getTitle()->getFullText()),
+			"color" => self::GREEN,
+			"title" => $article->getTitle()->getFullText(),
+			"title_link" => $article->getTitle()->getFullUrl(),
+			"text" => sprintf("Page was created by %s %s\nSummary: %s",
+				self::getSlackUserText($user),
+				$wgSlackIncludeDiffSize ? sprintf("(%+d bytes)", $revision->getSize()) : "",
+				$summary ? "_{$summary}_" : "none provided"
+			),
+			"fields" => array(),
 		);
 
-		if ($wgSlackIncludeDiffSize) {
-			$message .= sprintf(
-				" (%d bytes)",
-				$article->getRevision()->getSize()
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "Page Links",
+				"short" => "true",
+				"value" => self::getSlackArticleText($article, true, true),
 			);
 		}
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
 		self::send_slack_notification($message, "green", $user);
 	}
 
@@ -299,6 +325,8 @@ class SlackNotifications
 		LogEntry $logEntry
 	) {
 		$config                            = self::getExtConfig();
+		$wgSlackIncludePageUrls            = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls            = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom   = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationRemovedArticle = $config->get("SlackNotificationRemovedArticle");;
 
@@ -346,6 +374,8 @@ class SlackNotifications
 		Revision $revision = null
 	) {
 		$config                           = self::getExtConfig();
+		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationMovedArticle  = $config->get("SlackNotificationMovedArticle");;
 
@@ -393,6 +423,8 @@ class SlackNotifications
 		$moveonly = false
 	) {
 		$config                              = self::getExtConfig();
+		$wgSlackIncludePageUrls              = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls              = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom     = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationProtectedArticle = $config->get("SlackNotificationProtectedArticle");;
 
@@ -430,6 +462,8 @@ class SlackNotifications
 	{
 		$config                     = self::getExtConfig();
 		$wgSlackShowNewUserIP       = $config->get("SlackShowNewUserIP");
+		$wgSlackIncludePageUrls     = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls     = $config->get("SlackIncludeUserUrls");
 		$wgSlackShowNewUserEmail    = $config->get("SlackShowNewUserEmail");
 		$wgSlackNotificationNewUser = $config->get("SlackNotificationNewUser");
 		$wgSlackShowNewUserFullName = $config->get("SlackShowNewUserFullName");
@@ -487,6 +521,8 @@ class SlackNotifications
 	public static function slack_file_uploaded(UploadBase $image)
 	{
 		$config                        = self::getExtConfig();
+		$wgSlackIncludePageUrls        = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls        = $config->get("SlackIncludeUserUrls");
 		$wgSlackNotificationFileUpload = $config->get("SlackNotificationFileUpload");
 
 		if (!$wgSlackNotificationFileUpload) {
@@ -519,6 +555,8 @@ class SlackNotifications
 	public static function slack_user_blocked(Block $block, User $user)
 	{
 		$config                         = self::getExtConfig();
+		$wgSlackIncludePageUrls         = $config->get("SlackIncludePageUrls");
+		$wgSlackIncludeUserUrls         = $config->get("SlackIncludeUserUrls");
 		$wgSlackNotificationBlockedUser = $config->get("SlackNotificationBlockedUser");
 
 		if (!$wgSlackNotificationBlockedUser) {
