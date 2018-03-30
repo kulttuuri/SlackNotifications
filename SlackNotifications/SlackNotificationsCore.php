@@ -3,13 +3,13 @@ use MediaWiki\MediaWikiServices;
 
 class SlackNotifications
 {
-	/** @var The services object */
+	/** @var MediaWikiServices The services object */
 	private static $mwservices = null;
 
-	/** @var Config $mwconfig The mediawiki site config object */
+	/** @var Config The mediawiki site config object */
 	private static $mwconfig = null;
 
-	/** @var Config $snconfig The extension config object */
+	/** @var Config The extension config object */
 	private static $snconfig = null;
 
 
@@ -48,6 +48,8 @@ class SlackNotifications
 	/**
 	 * Gets nice HTML text for user containing the link to user page
 	 * and also links to user site, groups editing, talk and contribs pages.
+	 * @param User $user The user object
+	 * @return string
 	 */
 	private static function getSlackUserText(User $user)
 	{
@@ -77,6 +79,9 @@ class SlackNotifications
 	/**
 	 * Gets nice HTML text for article containing the link to article page
 	 * and also into edit, delete and article history pages.
+	 * @param WikiPage $article The page object
+	 * @param bool $diff Whether to include a link to the diff
+	 * @return string
 	 */
 	private static function getSlackArticleText(WikiPage $article, $diff = false)
 	{
@@ -111,6 +116,8 @@ class SlackNotifications
 	/**
 	 * Gets nice HTML text for title object containing the link to article page
 	 * and also into edit, delete and article history pages.
+	 * @param Title $title The title object of the page
+	 * @return string
 	 */
 	private static function getSlackTitleText(Title $title)
 	{
@@ -133,6 +140,19 @@ class SlackNotifications
 
 	/**
 	 * Occurs after the save page request has been processed.
+	 * @param WikiPage $article The page object that was updated
+	 * @param User $user The user making the change
+	 * @param Content $content The new page content
+	 * @param string $summary The edit summary
+	 * @param bool $isMinor Whether the edit was marked as minor
+	 * @param bool $isWatch Whether the editor is now watching the page
+	 * @param null $section Not used
+	 * @param int $flags Bitfield of options
+	 * @param Revision $revision The revision object created by the edit
+	 * @param Status $status The status object yet to be returned
+	 * @param int $baseRevId The revision ID the change was based on
+	 * @param int $undidRevId The revision ID this change undid, if any
+	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/PageContentSaveComplete
 	 */
 	public static function slack_article_saved(
@@ -172,7 +192,7 @@ class SlackNotifications
 		// calling it also here would trigger two notifications!
 		// Skip minor edits if user wanted to ignore them
 		if ((int)$status->value['new'] === 1 || ($isMinor && $wgSlackIgnoreMinorEdits)) {
-			return true;
+			return;
 		}
 
 		if ($article->getRevision()->getPrevious() === null) {
@@ -193,11 +213,20 @@ class SlackNotifications
 			);
 		}
 		self::send_slack_notification($message, "yellow", $user);
-		return true;
 	}
 
 	/**
 	 * Occurs after a new article has been created.
+	 * @param WikiPage $article The new page object
+	 * @param User $user The user that created the page
+	 * @param Content $text The new page's content object
+	 * @param string $summary The new page summary
+	 * @param bool $isminor Whether the page creation was marked as a minor edit
+	 * @param bool $iswatch Whether the page creator is watching the new page
+	 * @param null $section Not used
+	 * @param int $flags Bitfield of options
+	 * @param Revision $revision The revision object created by the new page
+	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleInsertComplete
 	 */
 	public static function slack_article_inserted(
@@ -248,11 +277,17 @@ class SlackNotifications
 			);
 		}
 		self::send_slack_notification($message, "green", $user);
-		return true;
 	}
 
 	/**
 	 * Occurs after the delete article request has been processed.
+	 * @param WikiPage $article The page that was deleted
+	 * @param User $user The user that performed the deletion
+	 * @param string $reason The reason given for the deletion
+	 * @param int $id The database ID of the deleted page
+	 * @param Content $content The deleted page content or null on error
+	 * @param LogEntry $logEntry The log entry recording the deletion
+	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleDeleteComplete
 	 */
 	public static function slack_article_deleted(
@@ -287,11 +322,18 @@ class SlackNotifications
 			$reason
 		);
 		self::send_slack_notification($message, "red", $user);
-		return true;
 	}
 
 	/**
 	 * Occurs after a page has been moved.
+	 * @param Title $title The page title object before the move
+	 * @param Title $newtitle The page title object after the move
+	 * @param User $user The user performing the move
+	 * @param int $oldid The database ID of the page before the move
+	 * @param int $newid The database ID of the redirection page or 0 if one wasn't created
+	 * @param string $reason The reason for the move
+	 * @param Revision $revision The revision object created by the move
+	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/TitleMoveComplete
 	 */
 	public static function slack_article_moved(
@@ -331,11 +373,16 @@ class SlackNotifications
 			$reason
 		);
 		self::send_slack_notification($message, "green", $user);
-		return true;
 	}
 
 	/**
 	 * Occurs after the protect article request has been processed.
+	 * @param WikiPage $article The page that was protected
+	 * @param User $user The user that protected the page
+	 * @param bool $protect True is the page is being protected, false if unprotected
+	 * @param string $reason The reason for the change in protection
+	 * @param bool $moveonly True if the protection is for moves only
+	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ArticleProtectComplete
 	 */
 	public static function slack_article_protected(
@@ -370,11 +417,13 @@ class SlackNotifications
 			$reason
 		);
 		self::send_slack_notification($message, "yellow", $user);
-		return true;
 	}
 
 	/**
 	 * Called after a user account is created.
+	 * @param User $user The new user
+	 * @param bool $byEmail True if the user was created "by email"
+	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/AddNewAccount
 	 */
 	public static function slack_new_user_account(User $user, $byEmail)
@@ -427,11 +476,12 @@ class SlackNotifications
 			$messageExtra
 		);
 		self::send_slack_notification($message, "green", $user);
-		return true;
 	}
 
 	/**
 	 * Called when a file upload has completed.
+	 * @param UploadBase $image The upload object
+	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/UploadComplete
 	 */
 	public static function slack_file_uploaded(UploadBase $image)
@@ -456,17 +506,14 @@ class SlackNotifications
 			round($image->getLocalFile()->size / 1024 / 1024, 3),
 			$image->getLocalFile()->getDescription()
 		);
-
 		self::send_slack_notification($message, "green", $wgUser);
-		return true;
-	}
-
-		self::send_slack_notification($message, "green", $wgUser);
-		return true;
 	}
 
 	/**
 	 * Occurs after the request to block an IP or user has been processed
+	 * @param Block $block The user block object
+	 * @param User $user The user performing the block
+	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:MediaWiki_hooks/BlockIpComplete
 	 */
 	public static function slack_user_blocked(Block $block, User $user)
@@ -536,12 +583,10 @@ class SlackNotifications
 					"header"  => "Content-type: application/json",
 					"method"  => "POST",
 					"content" => $post_data,
+					"proxy"   => $wgHTTPProxy ?: null,
+					"request_fulluri" => (bool)$wgHTTPProxy
 				),
 			);
-			if ($wgHTTPProxy) {
-				$options["http"]["proxy"]           = $wgHTTPProxy;
-				$options["http"]["request_fulluri"] = true;
-			}
 			$context = stream_context_create($options);
 			$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
 		}
