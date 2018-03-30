@@ -107,7 +107,7 @@ class SlackNotifications
 			} else {
 				$out .= ")";
 			}
-			return $out."\\n";
+			return $out."\n";
 		} else {
 			return sprintf("<%s|%s>", $title->getFullUrl, $title->getFullText());
 		}
