@@ -437,24 +437,29 @@ class SlackNotifications
 	public static function slack_file_uploaded(UploadBase $image)
 	{
 		$config                        = self::getExtConfig();
-		$wgWikiUrl                     = $config->get("WikiUrl");
-		$wgWikiUrlEnding               = $config->get("WikiUrlEnding");
 		$wgSlackNotificationFileUpload = $config->get("SlackNotificationFileUpload");
 
 		if (!$wgSlackNotificationFileUpload) {
 			return;
 		}
 
-		global $wgUser;
+		$user = $image->getLocalFile()->getUser("object");
+		if (is_numeric($user)) {
+			$user = User::newFromId($user);
+		}
 		$message = sprintf(
 			"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
-			self::getSlackUserText($wgUser->mName),
-			$wgWikiUrl . $wgWikiUrlEnding . $image->getLocalFile()->getTitle(),
-			$image->getLocalFile()->getTitle(),
+			self::getSlackUserText($user),
+			$image->getLocalFile()->getTitle()->getFullUrl(),
+			$image->getLocalFile()->getTitle()->getFullText(),
 			$image->getLocalFile()->getMimeType(),
 			round($image->getLocalFile()->size / 1024 / 1024, 3),
 			$image->getLocalFile()->getDescription()
 		);
+
+		self::send_slack_notification($message, "green", $wgUser);
+		return true;
+	}
 
 		self::send_slack_notification($message, "green", $wgUser);
 		return true;
