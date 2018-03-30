@@ -519,25 +519,22 @@ class SlackNotifications
 	public static function slack_user_blocked(Block $block, User $user)
 	{
 		$config                         = self::getExtConfig();
-		$wgWikiUrl                      = $config->get("WikiUrl");
-		$wgWikiUrlEnding                = $config->get("WikiUrlEnding");
-		$wgWikiUrlEndingBlockList       = $config->get("WikiUrlEndingBlockList");
 		$wgSlackNotificationBlockedUser = $config->get("SlackNotificationBlockedUser");
 
 		if (!$wgSlackNotificationBlockedUser) {
 			return;
 		}
 
+		$block   = new SpecialBlock();
 		$message = sprintf(
-			"%s has blocked %s%s. Block expiration: %s. <%s|List of all blocks>.",
+			"%s has blocked %s – %s. Block expiration: %s. <%s|List of all blocks>.",
 			self::getSlackUserText($user),
 			self::getSlackUserText($block->getTarget()),
-			$block->mReason == "" ? "" : "with reason '$block->mReason'",
+			$block->mReason === "" ? "no reason given" : "with reason '$block->mReason'",
 			$block->mExpiry,
-			$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingBlockList
+			$block->getPageTitle()->getFullUrl()
 		);
 		self::send_slack_notification($message, "red", $user);
-		return true;
 	}
 
 	/**
