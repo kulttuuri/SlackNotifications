@@ -49,34 +49,28 @@ class SlackNotifications
 	 * Gets nice HTML text for user containing the link to user page
 	 * and also links to user site, groups editing, talk and contribs pages.
 	 */
-	private static function getSlackUserText($user)
+	private static function getSlackUserText(User $user)
 	{
-		$config                           = self::getExtConfig();
-		$wgWikiUrl                        = $config->get("WikiUrl");
-		$wgWikiUrlEnding                  = $config->get("WikiUrlEnding");
-		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
-		$wgWikiUrlEndingUserPage          = $config->get("WikiUrlEndingUserPage");
-		$wgWikiUrlEndingBlockUser         = $config->get("WikiUrlEndingBlockUser");
-		$wgWikiUrlEndingUserRights        = $config->get("WikiUrlEndingUserRights");
-		$wgWikiUrlEndingUserTalkPage      = $config->get("WikiUrlEndingUserTalkPage");
-		$wgWikiUrlEndingUserContributions = $config->get("WikiUrlEndingUserContributions");
+		$config                 = self::getExtConfig();
+		$wgSlackIncludeUserUrls = $config->get("SlackIncludeUserUrls");
+
+		$title   = $user->getUserPage();
+		$block   = new SpecialBlock();
+		$rights  = new UserrightsPage();
+		$contrib = new SpecialContributions();
 
 		if ($wgSlackIncludeUserUrls) {
 			return sprintf(
 				"<%s|%s> (<%s|block> | <%s|groups> | <%s|talk> | <%s|contribs>)",
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserPage . urlencode($user),
+				$title->getFullUrl(),
 				$user,
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingBlockUser . urlencode($user),
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserRights . urlencode($user),
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserTalkPage . urlencode($user),
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserContributions . urlencode($user)
+				$block->getPageTitle()->getFullUrl() . "/" . urlencode($user),
+				$rights->getPageTitle()->getFullUrl() . "/" . urlencode($user),
+				$user->getTalkPage()->getFullUrl(),
+				$contrib->getPageTitle()->getFullUrl . "/" . urlencode($user)
 			);
 		} else {
-			return sprintf(
-				"<%s|%s>",
-				$wgWikiUrl . $wgWikiUrlEnding . $wgWikiUrlEndingUserPage . $user,
-				$user
-			);
+			return sprintf("<%s|%s>", $title->getFullUrl(), $user);
 		}
 	}
 
@@ -86,34 +80,31 @@ class SlackNotifications
 	 */
 	private static function getSlackArticleText(WikiPage $article, $diff = false)
 	{
-		$config                       = self::getExtConfig();
-		$wgWikiUrl                    = $config->get("WikiUrl");
-		$wgWikiUrlEnding              = $config->get("WikiUrlEnding");
-		$wgWikiUrlEndingDiff          = $config->get("WikiUrlEndingDiff");
-		$wgWikiUrlEndingHistory       = $config->get("WikiUrlEndingHistory");
-		$wgSlackIncludePageUrls       = $config->get("SlackIncludePageUrls");
-		$wgWikiUrlEndingEditArticle   = $config->get("WikiUrlEndingEditArticle");
-		$wgWikiUrlEndingDeleteArticle = $config->get("WikiUrlEndingDeleteArticle");
+		$config                 = self::getExtConfig();
+		$wgSlackIncludePageUrls = $config->get("SlackIncludePageUrls");
 
-		$prefix = $wgWikiUrl . $wgWikiUrlEnding . urlencode($article->getTitle()->getFullText());
-		if ($wgSlackIncludePageUrls)
-		{
+		$title = $article->getTitle();
+		if ($wgSlackIncludePageUrls) {
 			$out = sprintf(
 				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>",
-				$prefix,
-				$article->getTitle()->getFullText(),
-				$prefix . "&" . $wgWikiUrlEndingEditArticle,
-				$prefix . "&" . $wgWikiUrlEndingDeleteArticle,
-				$prefix . "&" . $wgWikiUrlEndingHistory
+				$title->getFullUrl(),
+				$title->getFullText(),
+				$title->getFullUrl(array("action"=>"edit")),
+				$title->getFullUrl(array("action"=>"delete")),
+				$title->getFullUrl(array("action"=>"history"))
 			);
 			if ($diff) {
-				$out .= sprintf(" | <%s|diff>)", $prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID());
+				$revid = $article->getRevision()->getID();
+				$out .= sprintf(
+					" | <%s|diff>)",
+					$title->getFullUrl(array("type"=>"revision", "diff"=>$revid))
+				);
 			} else {
 				$out .= ")";
 			}
 			return $out."\\n";
 		} else {
-			return sprintf("<%s|%s>", $prefix, $article->getTitle()->getFullText());
+			return sprintf("<%s|%s>", $title->getFullUrl, $title->getFullText());
 		}
 	}
 
@@ -123,26 +114,20 @@ class SlackNotifications
 	 */
 	private static function getSlackTitleText(Title $title)
 	{
-		$config                       = self::getExtConfig();
-		$wgWikiUrl                    = $config->get("WikiUrl");
-		$wgWikiUrlEnding              = $config->get("WikiUrlEnding");
-		$wgSlackIncludePageUrls       = $config->get("SlackIncludePageUrls");
-		$wgWikiUrlEndingHistory       = $config->get("WikiUrlEndingHistory");
-		$wgWikiUrlEndingEditArticle   = $config->get("WikiUrlEndingEditArticle");
-		$wgWikiUrlEndingDeleteArticle = $config->get("WikiUrlEndingDeleteArticle");
+		$config                 = self::getExtConfig();
+		$wgSlackIncludePageUrls = $config->get("SlackIncludePageUrls");
 
-		$titleName = $title->getFullText();
 		if ($wgSlackIncludePageUrls) {
 			return sprintf(
 				"<%s|%s> (<%s|edit> | <%s|delete> | <%s|history>)",
-				$wgWikiUrl . $wgWikiUrlEnding . $titleName,
-				$titleName,
-				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingEditArticle,
-				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingDeleteArticle,
-				$wgWikiUrl . $wgWikiUrlEnding . $titleName . "&" . $wgWikiUrlEndingHistory
+				$title->getFullUrl(),
+				$title->getFullText(),
+				$title->getFullUrl(array("action"=>"edit")),
+				$title->getFullUrl(array("action"=>"delete")),
+				$title->getFullUrl(array("action"=>"history"))
 			);
 		} else {
-			return sprintf("<%s|%s>", $wgWikiUrl . $wgWikiUrlEnding . $titleName, $titleName);
+			return sprintf("<%s|%s>", $title->getFullUrl(), $title->getFullText());
 		}
 	}
 
@@ -193,7 +178,7 @@ class SlackNotifications
 		if ($article->getRevision()->getPrevious() === null) {
 			return; // Skip edits that are just refreshing the page
 		}
-		
+
 		$message = sprintf(
 			"%s has %s article %s %s",
 			self::getSlackUserText($user),
