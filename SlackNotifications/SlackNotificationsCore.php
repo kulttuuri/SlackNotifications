@@ -689,9 +689,9 @@ class SlackNotifications
 			return;
 		}
 
-		$block   = new SpecialBlock();
-		$message = "A user was blocked";
-		$attach[] = array(
+		$blockpage = new SpecialBlock();
+		$message   = "A user was blocked";
+		$attach[]  = array(
 			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()),
 			"color"      => self::RED,
 			"title"      => $block->getTarget(),
@@ -708,7 +708,7 @@ class SlackNotifications
 		$attach[0]["fields"][] = array(
 			"title" => "More Info",
 			"short" => "true",
-			"value" => sprintf("<%s|%s>", $block->getPageTitle()->getFullUrl(), "Block list"),
+			"value" => sprintf("<%s|%s>", $blockpage->getPageTitle()->getFullUrl(), "Block list"),
 		);
 		if ($wgSlackIncludeUserUrls) {
 			$attach[0]["fields"][] = array(
