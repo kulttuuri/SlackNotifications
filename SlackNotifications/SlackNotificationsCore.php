@@ -344,7 +344,7 @@ class SlackNotifications
 		}
 
 		$message = "A page was deleted";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("%s has deleted %s", $user, $article->getTitle()->getFullText()),
 			"color"      => self::RED,
 			"title"      => $article->getTitle()->getFullText(),
@@ -419,7 +419,7 @@ class SlackNotifications
 		}
 
 		$message = "A page was moved";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("%s has moved %s to %s", $user, $title->getFullText(), $newtitle->getFullText()),
 			"color"      => self::YELLOW,
 			"title"      => $title->getFullText(),
@@ -489,7 +489,7 @@ class SlackNotifications
 		}
 
 		$message = "An article was protected";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("%s has %s %s", $user, $protect ? "protected" : "unprotected", $article->getTitle->getFullText()),
 			"color"      => self::YELLOW,
 			"title"      => $article->getTitle->getFullText(),
@@ -559,7 +559,7 @@ class SlackNotifications
 		}
 
 		$message = "A user was created";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("User %s was created", $user),
 			"color"      => self::GREEN,
 			"title"      => $user,
@@ -615,7 +615,7 @@ class SlackNotifications
 		}
 
 		$message = "A file was uploaded";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("%s has uploaded %s", $user, $image->getLocalFile()->getTitle()->getFullText()),
 			"color"      => self::GREEN,
 			"title"      => $image->getLocalFile()->getTitle()->getFullText(),
@@ -670,7 +670,7 @@ class SlackNotifications
 
 		$block   = new SpecialBlock();
 		$message = "A user was blocked";
-		$attach = array(
+		$attach[] = array(
 			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()),
 			"color"      => self::RED,
 			"title"      => $block->getTarget(),
