@@ -189,11 +189,13 @@ class SlackNotifications
 
 		$message = "A page was updated";
 		$attach[] = array(
-			"fallback" => sprintf("%s has edited %s", $user, $article->getTitle()->getFullText()),
-			"color" => self::YELLOW,
-			"title" => $article->getTitle()->getFullText(),
+			"fallback"   => sprintf("%s has edited %s", $user, $article->getTitle()->getFullText()),
+			"color"      => self::YELLOW,
+			"title"      => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
-			"text" => sprintf(
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
+			"text"       => sprintf(
 				"Page was edited%s by %s %s\nSummary: %s",
 				($isMinor ? " (minor)" : ""),
 				self::getSlackUserText($user),
@@ -204,8 +206,6 @@ class SlackNotifications
 				),
 				$summary ? "_{$summary}_" : "none provided"
 			),
-			"fields" => array(),
-			"ts"     => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 		if ($wgSlackIncludePageUrls) {
 			$attach[0]["fields"][] = array(
@@ -276,17 +276,17 @@ class SlackNotifications
 
 		$message = "A page was created";
 		$attach[] = array(
-			"fallback" => sprintf("%s has created %s", $user, $article->getTitle()->getFullText()),
-			"color" => self::GREEN,
-			"title" => $article->getTitle()->getFullText(),
+			"fallback"   => sprintf("%s has created %s", $user, $article->getTitle()->getFullText()),
+			"color"      => self::GREEN,
+			"title"      => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
-			"text" => sprintf("Page was created by %s %s\nSummary: %s",
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
+			"text"       => sprintf("Page was created by %s %s\nSummary: %s",
 				self::getSlackUserText($user),
 				$wgSlackIncludeDiffSize ? sprintf("(%+d bytes)", $revision->getSize()) : "",
 				$summary ? "_{$summary}_" : "none provided"
 			),
-			"fields" => array(),
-			"ts"     => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -351,13 +351,13 @@ class SlackNotifications
 			"color"      => self::RED,
 			"title"      => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $logEntry->getTimestamp())->format("U"),
 			"text"       => sprintf(
 				"Page was deleted by %s\nReason: %s",
 				self::getSlackUserText($user),
 				$reason ? "_{$reason}_" : "none provided"
 			),
-			"fields"     => array(),
-			"ts"         => DateTime::createFromFormat("YmdHis", $logEntry->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -427,14 +427,14 @@ class SlackNotifications
 			"color"      => self::YELLOW,
 			"title"      => $title->getFullText(),
 			"title_link" => $title->getFullUrl(),
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 			"text"       => sprintf(
 				"Page was moved to %s by %s\nReason: %s",
 				self::getSlackTitleText($newtitle),
 				self::getSlackUserText($user),
 				$reason ? "_{$reason}_" : "none given"
 			),
-			"fields"     => array(),
-			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -505,13 +505,14 @@ class SlackNotifications
 			"color"      => self::YELLOW,
 			"title"      => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $article->getRevision()->getTimestamp())->format("U"),
 			"text"       => sprintf(
 				"Page had protection %s by %s\nReason: %s",
 				$isProtecting ? "changed" : "removed",
 				self::getSlackUserText($user),
 				$reason ? "_${reason}_" : "none given"
 			),
-			"fields"     => array(),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -628,13 +629,13 @@ class SlackNotifications
 			"color"      => self::GREEN,
 			"title"      => $image->getLocalFile()->getTitle()->getFullText(),
 			"title_link" => $image->getLocalFile()->getTitle()->getFullUrl(),
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $image->getLocalFile()->getTimestamp())->format("U"),
 			"text"       => sprintf(
 				"File was uploaded by %s\nSummary: %s",
 				self::getSlackUserText($user),
 				$image->getLocalFile()->getDescription() ? "_" . $image->getLocalFile()->getDescription() . "_" : "none given"
 			),
-			"fields"     => array(),
-			"ts"     => DateTime::createFromFormat("YmdHis", $image->getLocalFile()->getTimestamp())->format("U"),
 		);
 
 		$attach[0]["fields"][] = array("title" => "Type", "short" => "true", "value" => $image->getLocalFile()->getMimeType());
@@ -695,13 +696,13 @@ class SlackNotifications
 			"color"      => self::RED,
 			"title"      => $block->getTarget(),
 			"title_link" => $block->getTarget()->getUserPage()->getFullUrl(),
+			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $block->mTimestamp)->format("U"),
 			"text"       => sprintf(
 				"User was blocked by %s\nReason: %s.",
 				self::getSlackUserText($user),
 				$block->mReason ? "_{$block->mReason}_" : "none given"
 			),
-			"fields"     => array(),
-			"ts"         => DateTime::createFromFormat("YmdHis", $block->mTimestamp)->format("U"),
 		);
 		$attach[0]["fields"][] = array("title" => "Expiry", "short" => "true", "value" => $block->mExpiry);
 		$attach[0]["fields"][] = array(
@@ -732,6 +733,7 @@ class SlackNotifications
 	{
 		$mwconfig = self::getMwConfig();
 		$config   = self::getExtConfig();
+
 		$wgSitename                = $mwconfig->get("Sitename");
 		$wgHTTPProxy               = $mwconfig->get("HTTPProxy");
 		$wgSlackEmoji              = $config->get("SlackEmoji");
