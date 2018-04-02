@@ -712,16 +712,15 @@ class SlackNotifications
 	{
 		$mwconfig = self::getMwConfig();
 		$config   = self::getExtConfig();
-		$wgExcludedPermission      = $mwconfig->get("ExcludedPermission");
 		$wgSitename                = $mwconfig->get("Sitename");
 		$wgHTTPProxy               = $mwconfig->get("HTTPProxy");
-		$wgSlackIncomingWebhookUrl = $config->get("SlackIncomingWebhookUrl");
+		$wgSlackEmoji              = $config->get("SlackEmoji");
 		$wgSlackFromName           = $config->get("SlackFromName");
 		$wgSlackRoomName           = $config->get("SlackRoomName");
-		$wgSlackSendMethod         = $config->get("SlackSendMethod");
-		$wgSlackEmoji              = $config->get("SlackEmoji");
-		
-		if ($wgExcludedPermission && $user->isAllowed($wgExcludedPermission)) {
+		$wgSlackExcludeGroup       = $config->get("ExcludedPermission");
+		$wgSlackIncomingWebhookUrl = $config->get("SlackIncomingWebhookUrl");
+
+		if ($wgSlackExcludeGroup && $user->isAllowed($wgSlackExcludeGroup)) {
 			return; // Users with the permission suppress notifications
 		}
 
@@ -734,8 +733,7 @@ class SlackNotifications
 		);
 		$post_data = json_encode($post_data);
 
-		// Use file_get_contents to send the data. Note that you will need to have allow_url_fopen enabled in php.ini for this to work.
-		if ($wgSlackSendMethod == "file_get_contents") {
+		if (ini_get("allow_url_fopen")) {
 			$options = array(
 				"http" => array(
 					"header"  => "Content-type: application/json",
@@ -747,9 +745,7 @@ class SlackNotifications
 			);
 			$context = stream_context_create($options);
 			$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
-		}
-		// Call the Slack API through cURL (default way). Note that you will need to have cURL enabled for this to work.
-		else {
+		} elseif (extension_loaded("curl")) {
 			$h = curl_init();
 			curl_setopt_array($h, array(
 				CURLOPT_URL        => $wgSlackIncomingWebhookUrl,
@@ -760,6 +756,9 @@ class SlackNotifications
 			));
 			curl_exec($h);
 			curl_close($h);
+		} else {
+			// no way to send the notification
+			return false;
 		}
 	}
 }
