@@ -101,7 +101,7 @@ class SlackNotifications
 			}
 			return $out;
 		} else {
-			return sprintf("<%s|%s>", $title->getFullUrl, $title->getFullText());
+			return sprintf("<%s|%s>", $title->getFullUrl(), $title->getFullText());
 		}
 	}
 
@@ -194,8 +194,8 @@ class SlackNotifications
 			"title" => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
 			"text" => sprintf(
-				"This was %s by %s %s\nSummary: %s",
-				($isMinor ? "a minor edit" : "an edit"),
+				"Page was edited%s by %s %s\nSummary: %s",
+				($isMinor ? " (minor)" : ""),
 				self::getSlackUserText($user),
 				(
 					$wgSlackIncludeDiffSize ?
@@ -425,10 +425,9 @@ class SlackNotifications
 			"title"      => $title->getFullText(),
 			"title_link" => $title->getFullUrl(),
 			"text"       => sprintf(
-				"%s has moved %s to %s\nReason: %s",
-				self::getSlackUserText($user),
-				self::getSlackTitleText($title),
+				"Page was moved to %s by %s\nReason: %s",
 				self::getSlackTitleText($newtitle),
+				self::getSlackUserText($user),
 				$reason ? "_{$reason}_" : "none given"
 			),
 			"fields"     => array(),
@@ -438,7 +437,7 @@ class SlackNotifications
 			$attach[0]["fields"][] = array(
 				"title" => "New Page Links",
 				"short" => "true",
-				"value" => self::getSlackTitleText($title, true),
+				"value" => self::getSlackTitleText($newtitle, true),
 			);
 		}
 		if ($wgSlackIncludeUserUrls) {
@@ -456,7 +455,7 @@ class SlackNotifications
 	 * Occurs after the protect article request has been processed.
 	 * @param WikiPage $article The page that was protected
 	 * @param User $user The user that protected the page
-	 * @param bool $protect True is the page is being protected, false if unprotected
+	 * @param array $protect An array of restrictions indexed by permission
 	 * @param string $reason The reason for the change in protection
 	 * @param bool $moveonly True if the protection is for moves only
 	 * @return void
@@ -488,17 +487,24 @@ class SlackNotifications
 			}
 		}
 
-		$message = "An article was protected";
+		foreach ($protect as $permission=>$groupname) {
+		// if there's a restriction in place, the value is a group name
+			if ($groupname) {
+				$isProtecting = true;
+				break;
+			}
+		}
+
+		$message = "A page was protected";
 		$attach[] = array(
-			"fallback"   => sprintf("%s has %s %s", $user, $protect ? "protected" : "unprotected", $article->getTitle->getFullText()),
+			"fallback"   => sprintf("%s has %s %s", $user, $protect ? "protected" : "unprotected", $article->getTitle()->getFullText()),
 			"color"      => self::YELLOW,
-			"title"      => $article->getTitle->getFullText(),
+			"title"      => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
 			"text"       => sprintf(
-				"%s has %s article %s. Reason: %s",
+				"Page had protection %s by %s\nReason: %s",
+				$isProtecting ? "changed" : "removed",
 				self::getSlackUserText($user),
-				$protect ? "changed protection of" : "removed protection of",
-				self::getSlackArticleText($article),
 				$reason ? "_${reason}_" : "none given"
 			),
 			"fields"     => array(),
@@ -564,10 +570,7 @@ class SlackNotifications
 			"color"      => self::GREEN,
 			"title"      => $user,
 			"title_link" => $user->getUserPage->getFullUrl(),
-			"text"       => sprintf(
-				"New user account %s was just created",
-				self::getSlackUserText($user)
-			),
+			"text"       => sprintf("New user account was created"),
 			"fields"     => array(),
 		);
 
@@ -621,9 +624,8 @@ class SlackNotifications
 			"title"      => $image->getLocalFile()->getTitle()->getFullText(),
 			"title_link" => $image->getLocalFile()->getTitle()->getFullUrl(),
 			"text"       => sprintf(
-				"%s has uploaded file %s\nSummary: %s",
+				"File was uploaded by %s\nSummary: %s",
 				self::getSlackUserText($user),
-				self::getSlackTitleText($image->getLocalFile()->getTitle()),
 				$image->getLocalFile()->getDescription() ? "_" . $image->getLocalFile()->getDescription() . "_" : "none given"
 			),
 			"fields"     => array(),
@@ -676,9 +678,8 @@ class SlackNotifications
 			"title"      => $block->getTarget(),
 			"title_link" => $block->getTarget()->getUserPage()->getFullUrl(),
 			"text"       => sprintf(
-				"%s has blocked %s\nReason: %s.",
+				"User was blocked by %s\nReason: %s.",
 				self::getSlackUserText($user),
-				self::getSlackUserText($block->getTarget()),
 				$block->mReason ? "_{$block->mReason}_" : "none given"
 			),
 			"fields"     => array(),
