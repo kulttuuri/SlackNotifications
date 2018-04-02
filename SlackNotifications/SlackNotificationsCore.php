@@ -632,7 +632,19 @@ class SlackNotifications
 		);
 
 		$attach[0]["fields"][] = array("title" => "Type", "short" => "true", "value" => $image->getLocalFile()->getMimeType());
-		$attach[0]["fields"][] = array("title" => "Size", "short" => "true", "value" => round($image->getLocalFile()->size / 1024 / 1024, 3));
+
+		$size = $image->getLocalFile()->size;
+		if ($size > 1024 * 1024 * 1024) {
+			$size = sprintf("%f GB", round($size / 1024 / 1024 / 1024, 2));
+		} elseif ($size > 1024 * 1024) {
+			$size = sprintf("%f MB", round($size / 1024 / 1024, 1));
+		} elseif ($size > 1024) {
+			$size = sprintf("%d kB", floor($size / 1024));
+		} else {
+			$size = sprintf("%d B", $size);
+		}
+
+		$attach[0]["fields"][] = array("title" => "Size", "short" => "true", "value" => $size);
 
 		if ($wgSlackIncludePageUrls) {
 			$attach[0]["fields"][] = array(
