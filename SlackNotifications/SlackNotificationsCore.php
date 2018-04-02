@@ -220,7 +220,7 @@ class SlackNotifications
 				"value" => self::getSlackUserText($user, true),
 			);
 		}
-		self::send_slack_notification($message, "yellow", $user, $attach);
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -275,7 +275,7 @@ class SlackNotifications
 
 		$message = "A page was created";
 		$attach[] = array(
-			"fallback" => sprintf("%s has created article %s", $user, $article->getTitle()->getFullText()),
+			"fallback" => sprintf("%s has created %s", $user, $article->getTitle()->getFullText()),
 			"color" => self::GREEN,
 			"title" => $article->getTitle()->getFullText(),
 			"title_link" => $article->getTitle()->getFullUrl(),
@@ -302,7 +302,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, "green", $user);
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -343,13 +343,36 @@ class SlackNotifications
 			}
 		}
 
-		$message = sprintf(
-			"%s has deleted article %s Reason: %s",
-			self::getSlackUserText($user),
-			self::getSlackArticleText($article),
-			$reason
+		$message = "A page was deleted";
+		$attach = array(
+			"fallback"   => sprintf("%s has deleted %s", $user, $article->getTitle()->getFullText()),
+			"color"      => self::RED,
+			"title"      => $article->getTitle()->getFullText(),
+			"title_link" => $article->getTitle()->getFullUrl(),
+			"text"       => sprintf(
+				"Page was deleted by %s\nReason: %s",
+				self::getSlackUserText($user),
+				$reason ? "_{$reason}_" : "none provided"
+			),
+			"fields"     => array(),
 		);
-		self::send_slack_notification($message, "red", $user);
+
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "Page Links",
+				"short" => "true",
+				"value" => self::getSlackArticleText($article, true),
+			);
+		}
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -395,14 +418,38 @@ class SlackNotifications
 			}
 		}
 
-		$message = sprintf(
-			"%s has moved article %s to %s. Reason: %s",
-			self::getSlackUserText($user),
-			self::getSlackTitleText($title),
-			self::getSlackTitleText($newtitle),
-			$reason
+		$message = "A page was moved";
+		$attach = array(
+			"fallback"   => sprintf("%s has moved %s to %s", $user, $title->getFullText(), $newtitle->getFullText()),
+			"color"      => self::YELLOW,
+			"title"      => $title->getFullText(),
+			"title_link" => $title->getFullUrl(),
+			"text"       => sprintf(
+				"%s has moved %s to %s\nReason: %s",
+				self::getSlackUserText($user),
+				self::getSlackTitleText($title),
+				self::getSlackTitleText($newtitle),
+				$reason ? "_{$reason}_" : "none given"
+			),
+			"fields"     => array(),
 		);
-		self::send_slack_notification($message, "green", $user);
+
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "New Page Links",
+				"short" => "true",
+				"value" => self::getSlackTitleText($title, true),
+			);
+		}
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -441,14 +488,38 @@ class SlackNotifications
 			}
 		}
 
-		$message = sprintf(
-			"%s has %s article %s. Reason: %s",
-			self::getSlackUserText($user),
-			$protect ? "changed protection of" : "removed protection of",
-			self::getSlackArticleText($article),
-			$reason
+		$message = "An article was protected";
+		$attach = array(
+			"fallback"   => sprintf("%s has %s %s", $user, $protect ? "protected" : "unprotected", $article->getTitle->getFullText()),
+			"color"      => self::YELLOW,
+			"title"      => $article->getTitle->getFullText(),
+			"title_link" => $article->getTitle()->getFullUrl(),
+			"text"       => sprintf(
+				"%s has %s article %s. Reason: %s",
+				self::getSlackUserText($user),
+				$protect ? "changed protection of" : "removed protection of",
+				self::getSlackArticleText($article),
+				$reason ? "_${reason}_" : "none given"
+			),
+			"fields"     => array(),
 		);
-		self::send_slack_notification($message, "yellow", $user);
+
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "Page Links",
+				"short" => "true",
+				"value" => self::getSlackArticleText($article, true),
+			);
+		}
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -462,7 +533,6 @@ class SlackNotifications
 	{
 		$config                     = self::getExtConfig();
 		$wgSlackShowNewUserIP       = $config->get("SlackShowNewUserIP");
-		$wgSlackIncludePageUrls     = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls     = $config->get("SlackIncludeUserUrls");
 		$wgSlackShowNewUserEmail    = $config->get("SlackShowNewUserEmail");
 		$wgSlackNotificationNewUser = $config->get("SlackNotificationNewUser");
@@ -488,28 +558,38 @@ class SlackNotifications
 			$ipaddress = "";
 		}
 
-		$messageExtra = "";
-		if ($wgSlackShowNewUserEmail || $wgSlackShowNewUserFullName || $wgSlackShowNewUserIP) {
-			$messageExtra = "(";
-			if ($wgSlackShowNewUserEmail && $email) {
-				$messageExtra .= $email . ", ";
-			}
-			if ($wgSlackShowNewUserFullName && $realname) {
-				$messageExtra .= $realname . ", ";
-			}
-			if ($wgSlackShowNewUserIP && $ipaddress) {
-				$messageExtra .= $ipaddress . ", ";
-			}
-			$messageExtra = substr($messageExtra, 0, -2); // Remove trailing , 
-			$messageExtra .= ")";
+		$message = "A user was created";
+		$attach = array(
+			"fallback"   => sprintf("User %s was created", $user),
+			"color"      => self::GREEN,
+			"title"      => $user,
+			"title_link" => $user->getUserPage->getFullUrl(),
+			"text"       => sprintf(
+				"New user account %s was just created",
+				self::getSlackUserText($user)
+			),
+			"fields"     => array(),
+		);
+
+		if ($wgSlackShowNewUserEmail && $email) {
+			$attach[0]["fields"][] = array("title" => "Email", "value" => $email, "short" => true);
+		}
+		if ($wgSlackShowNewUserFullName && $realname) {
+			$attach[0]["fields"][] = array("title" => "Name", "value" => $realname, "short" => true);
+		}
+		if ($wgSlackShowNewUserIP && $ipaddress) {
+			$attach[0]["fields"][] = array("title" => "IP", "value" => $ipaddress, "short" => true);
 		}
 
-		$message = sprintf(
-			"New user account %s was just created %s",
-			self::getSlackUserText($user),
-			$messageExtra
-		);
-		self::send_slack_notification($message, "green", $user);
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "false",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
@@ -533,16 +613,41 @@ class SlackNotifications
 		if (is_numeric($user)) {
 			$user = User::newFromId($user);
 		}
-		$message = sprintf(
-			"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
-			self::getSlackUserText($user),
-			$image->getLocalFile()->getTitle()->getFullUrl(),
-			$image->getLocalFile()->getTitle()->getFullText(),
-			$image->getLocalFile()->getMimeType(),
-			round($image->getLocalFile()->size / 1024 / 1024, 3),
-			$image->getLocalFile()->getDescription()
+
+		$message = "A file was uploaded";
+		$attach = array(
+			"fallback"   => sprintf("%s has uploaded %s", $user, $image->getLocalFile()->getTitle()->getFullText()),
+			"color"      => self::GREEN,
+			"title"      => $image->getLocalFile()->getTitle()->getFullText(),
+			"title_link" => $image->getLocalFile()->getTitle()->getFullUrl(),
+			"text"       => sprintf(
+				"%s has uploaded file %s\nSummary: %s",
+				self::getSlackUserText($user),
+				self::getSlackTitleText($image->getLocalFile()->getTitle()),
+				$image->getLocalFile()->getDescription() ? "_" . $image->getLocalFile()->getDescription() . "_" : "none given"
+			),
+			"fields"     => array(),
 		);
-		self::send_slack_notification($message, "green", $wgUser);
+
+		$attach[0]["fields"][] = array("title" => "Type", "short" => "true", "value" => $image->getLocalFile()->getMimeType());
+		$attach[0]["fields"][] = array("title" => "Size", "short" => "true", "value" => round($image->getLocalFile()->size / 1024 / 1024, 3));
+
+		if ($wgSlackIncludePageUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "File Links",
+				"short" => "true",
+				"value" => self::getSlackTitleText($image->getTitle(), true),
+			);
+		}
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($user, true),
+			);
+		}
+
+		self::send_slack_notification($message, $wgUser, $attach);
 	}
 
 	/**
@@ -564,28 +669,46 @@ class SlackNotifications
 		}
 
 		$block   = new SpecialBlock();
-		$message = sprintf(
-			"%s has blocked %s – %s. Block expiration: %s. <%s|List of all blocks>.",
-			self::getSlackUserText($user),
-			self::getSlackUserText($block->getTarget()),
-			$block->mReason === "" ? "no reason given" : "with reason '$block->mReason'",
-			$block->mExpiry,
-			$block->getPageTitle()->getFullUrl()
+		$message = "A user was blocked";
+		$attach = array(
+			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()),
+			"color"      => self::RED,
+			"title"      => $block->getTarget(),
+			"title_link" => $block->getTarget()->getUserPage()->getFullUrl(),
+			"text"       => sprintf(
+				"%s has blocked %s\nReason: %s.",
+				self::getSlackUserText($user),
+				self::getSlackUserText($block->getTarget()),
+				$block->mReason ? "_{$block->mReason}_" : "none given"
+			),
+			"fields"     => array(),
 		);
-		self::send_slack_notification($message, "red", $user);
+		$attach[0]["fields"][] = array("title" => "Expiry", "short" => "true", "value" => $block->mExpiry);
+		$attach[0]["fields"][] = array(
+			"title" => "More Info",
+			"short" => "true",
+			"value" => sprintf("<%s|%s>", $block->getPageTitle()->getFullUrl(), "Block list"),
+		);
+		if ($wgSlackIncludeUserUrls) {
+			$attach[0]["fields"][] = array(
+				"title" => "User Links",
+				"short" => "true",
+				"value" => self::getSlackUserText($block->getTarget(), true),
+			);
+		}
+		self::send_slack_notification($message, $user, $attach);
 	}
 
 	/**
 	 * Sends the message to the Slack webhook
 	 *
 	 * @param string $message Message to be sent.
-	 * @param string $colour Deprecated
 	 * @param User $user The Mediawiki user object.
 	 * @param array $attach Array of attachment objects to be sent.
 	 * @return void
 	 * @see https://api.slack.com/incoming-webhooks
 	 */
-	private static function send_slack_notification($message, $colour, $user, $attach = array())
+	private static function send_slack_notification($message, $user, $attach = array())
 	{
 		$mwconfig = self::getMwConfig();
 		$config   = self::getExtConfig();
