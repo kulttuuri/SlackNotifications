@@ -692,9 +692,9 @@ class SlackNotifications
 		$blockpage = new SpecialBlock();
 		$message   = "A user was blocked";
 		$attach[]  = array(
-			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()),
+			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()->getName()),
 			"color"      => self::RED,
-			"title"      => $block->getTarget(),
+			"title"      => $block->getTarget()->getName(),
 			"title_link" => $block->getTarget()->getUserPage()->getFullUrl(),
 			"fields"     => array(),
 			"ts"         => DateTime::createFromFormat("YmdHis", $block->mTimestamp)->format("U"),
