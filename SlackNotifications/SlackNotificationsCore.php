@@ -205,6 +205,7 @@ class SlackNotifications
 				$summary ? "_{$summary}_" : "none provided"
 			),
 			"fields" => array(),
+			"ts"     => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 		if ($wgSlackIncludePageUrls) {
 			$attach[0]["fields"][] = array(
@@ -285,6 +286,7 @@ class SlackNotifications
 				$summary ? "_{$summary}_" : "none provided"
 			),
 			"fields" => array(),
+			"ts"     => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -355,6 +357,7 @@ class SlackNotifications
 				$reason ? "_{$reason}_" : "none provided"
 			),
 			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $logEntry->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -431,6 +434,7 @@ class SlackNotifications
 				$reason ? "_{$reason}_" : "none given"
 			),
 			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 		);
 
 		if ($wgSlackIncludePageUrls) {
@@ -572,6 +576,7 @@ class SlackNotifications
 			"title_link" => $user->getUserPage->getFullUrl(),
 			"text"       => sprintf("New user account was created"),
 			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getRegistration())->format("U"),
 		);
 
 		if ($wgSlackShowNewUserEmail && $email) {
@@ -629,6 +634,7 @@ class SlackNotifications
 				$image->getLocalFile()->getDescription() ? "_" . $image->getLocalFile()->getDescription() . "_" : "none given"
 			),
 			"fields"     => array(),
+			"ts"     => DateTime::createFromFormat("YmdHis", $image->getLocalFile()->getTimestamp())->format("U"),
 		);
 
 		$attach[0]["fields"][] = array("title" => "Type", "short" => "true", "value" => $image->getLocalFile()->getMimeType());
@@ -695,6 +701,7 @@ class SlackNotifications
 				$block->mReason ? "_{$block->mReason}_" : "none given"
 			),
 			"fields"     => array(),
+			"ts"         => DateTime::createFromFormat("YmdHis", $block->mTimestamp)->format("U"),
 		);
 		$attach[0]["fields"][] = array("title" => "Expiry", "short" => "true", "value" => $block->mExpiry);
 		$attach[0]["fields"][] = array(
