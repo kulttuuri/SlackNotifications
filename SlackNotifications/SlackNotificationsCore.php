@@ -126,6 +126,25 @@ class SlackNotifications
 	}
 
 	/**
+	 * Determines if a title is a prefix match for an entry in the excluded list
+	 * @param string $title The page title
+	 * @return boolean Whether the title matched the list
+	 */
+	private static function isExcluded($title)
+	{
+		$config   = self::getExtConfig();
+		$excluded = $config->get("SlackExcludeNotificationsFrom");
+		if (!is_array($excluded)) {
+			return false;
+		}
+		$result = array_filter(
+			$excluded,
+			function($v) use ($title) {return strpos($title, $v) === 0;}
+		);
+		return (bool)count($result);
+	}
+
+	/**
 	 * Occurs after the save page request has been processed.
 	 * @param WikiPage $article The page object that was updated
 	 * @param User $user The user making the change
@@ -161,25 +180,13 @@ class SlackNotifications
 		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackIgnoreMinorEdits          = $config->get("SlackIgnoreMinorEdits");
-		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationEditedArticle = $config->get("SlackNotificationEditedArticle");
 
 
-		if (!$wgSlackNotificationEditedArticle) {
-			return;
-		}
-
-		// Discard notifications from excluded pages
-		if (is_array($wgSlackExcludeNotificationsFrom)) {
-			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) {
-					return;
-				}
-			}
-		}
-
-		// Skip new articles, minor edits, or null revisions (eg protecting articles)
 		if (
+			!$wgSlackNotificationEditedArticle ||
+			self::isExcluded($article->getTitle()) ||
+			// Skip new articles, minor edits, or null revisions (eg protecting articles)
 			(int)$status->value['new'] === 1 ||
 			($isMinor && $wgSlackIgnoreMinorEdits) ||
 			$article->getRevision()->getPrevious() === null
@@ -253,24 +260,14 @@ class SlackNotifications
 		$wgSlackIncludeDiffSize           = $config->get("SlackIncludeDiffSize");
 		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
-		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationAddedArticle  = $config->get("SlackNotificationAddedArticle");
 
-		if (!$wgSlackNotificationAddedArticle) {
-			return;
-		}
-
-		// Discard notifications from excluded pages
-		if (is_array($wgSlackExcludeNotificationsFrom)) {
-			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) {
-					return;
-				}
-			}
-		}
-
-		// Do not announce newly added file uploads as articles...
-		if ($article->getTitle()->getNsText() === "File") {
+		if (
+			!$wgSlackNotificationAddedArticle ||
+			self::isExcluded($article->getTitle()) ||
+			// Do not announce newly added file uploads as articles...
+			$article->getTitle()->getNsText() === "File"
+		) {
 			return;
 		}
 
@@ -329,20 +326,10 @@ class SlackNotifications
 		$config                            = self::getExtConfig();
 		$wgSlackIncludePageUrls            = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls            = $config->get("SlackIncludeUserUrls");
-		$wgSlackExcludeNotificationsFrom   = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationRemovedArticle = $config->get("SlackNotificationRemovedArticle");
 
-		if (!$wgSlackNotificationRemovedArticle) {
+		if (!$wgSlackNotificationRemovedArticle || self::isExcluded($article->getTitle())) {
 			return;
-		}
-
-		// Discard notifications from excluded pages
-		if (is_array($wgSlackExcludeNotificationsFrom)) {
-			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) {
-					return;
-				}
-			}
 		}
 
 		$message = "A page was deleted";
@@ -402,23 +389,14 @@ class SlackNotifications
 		$config                           = self::getExtConfig();
 		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
-		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationMovedArticle  = $config->get("SlackNotificationMovedArticle");
 
-		if (!$wgSlackNotificationMovedArticle) {
+		if (
+			!$wgSlackNotificationMovedArticle ||
+			self::isExcluded($title) ||
+			self::isExcluded($newTitle)
+		) {
 			return;
-		}
-
-		// Discard notifications from excluded pages
-		if (is_array($wgSlackExcludeNotificationsFrom)) {
-			foreach ($wgSlackExcludeNotificationsFrom as $currentExclude) {
-				if (0 === strpos($title, $currentExclude)) {
-					return;
-				}
-				if (0 === strpos($newtitle, $currentExclude)) {
-					return;
-				}
-			}
 		}
 
 		$message = "A page was moved";
@@ -475,10 +453,9 @@ class SlackNotifications
 		$config                              = self::getExtConfig();
 		$wgSlackIncludePageUrls              = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls              = $config->get("SlackIncludeUserUrls");
-		$wgSlackExcludeNotificationsFrom     = $config->get("SlackExcludeNotificationsFrom");
 		$wgSlackNotificationProtectedArticle = $config->get("SlackNotificationProtectedArticle");
 
-		if (!$wgSlackNotificationProtectedArticle) {
+		if (!$wgSlackNotificationProtectedArticle || self::isExcluded($article->getTitle())) {
 			return;
 		}
 
@@ -614,7 +591,7 @@ class SlackNotifications
 		$wgSlackIncludeUserUrls        = $config->get("SlackIncludeUserUrls");
 		$wgSlackNotificationFileUpload = $config->get("SlackNotificationFileUpload");
 
-		if (!$wgSlackNotificationFileUpload) {
+		if (!$wgSlackNotificationFileUpload || self::isExcluded($image->getLocalFile()->getTitle())) {
 			return;
 		}
 
@@ -738,7 +715,7 @@ class SlackNotifications
 		$wgSlackEmoji              = $config->get("SlackEmoji");
 		$wgSlackFromName           = $config->get("SlackFromName");
 		$wgSlackRoomName           = $config->get("SlackRoomName");
-		$wgSlackExcludeGroup       = $config->get("ExcludedPermission");
+		$wgSlackExcludeGroup       = $config->get("SlackExcludedGroup");
 		$wgSlackIncomingWebhookUrl = $config->get("SlackIncomingWebhookUrl");
 
 		if ($wgSlackExcludeGroup && $user->isAllowed($wgSlackExcludeGroup)) {
