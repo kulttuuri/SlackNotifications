@@ -138,7 +138,7 @@ class SlackNotifications
         if (is_array($spaces) && count($spaces) > 0) {
             $result = array_filter(
                 $spaces,
-                function($v) use ($nspace) {
+                function ($v) use ($nspace) {
                     return strcmp($nspace, $v) === 0;
                 }
             );
@@ -152,7 +152,7 @@ class SlackNotifications
         if (is_array($titles) && count($titles) > 0) {
             $result = array_filter(
                 $titles,
-                function($v) use ($btitle) {
+                function ($v) use ($btitle) {
                     return strpos($btitle, $v) === 0;
                 }
             );
@@ -166,7 +166,7 @@ class SlackNotifications
         if (is_array($legacy) && count($legacy) > 0) {
             $result = array_filter(
                 $legacy,
-                function($v) use ($ftitle) {
+                function ($v) use ($ftitle) {
                     return strpos($ftitle, $v) === 0;
                 }
             );
