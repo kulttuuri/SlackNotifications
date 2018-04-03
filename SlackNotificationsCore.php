@@ -742,7 +742,7 @@ class SlackNotifications
 		$wgSlackEmoji              = $config->get("SlackEmoji");
 		$wgSlackFromName           = $config->get("SlackFromName");
 		$wgSlackRoomName           = $config->get("SlackRoomName");
-		$wgSlackExcludeGroup       = $config->get("SlackExcludedGroup");
+		$wgSlackExcludeGroup       = $config->get("SlackExcludeGroup");
 		$wgSlackIncomingWebhookUrl = $config->get("SlackIncomingWebhookUrl");
 
 		if ($wgSlackExcludeGroup && $user->isAllowed($wgSlackExcludeGroup)) {
