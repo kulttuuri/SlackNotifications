@@ -4,13 +4,13 @@ use MediaWiki\MediaWikiServices;
 class SlackNotifications
 {
 	/** @var MediaWikiServices The services object */
-	private static $mwservices = null;
+	private static $mwServices = null;
 
 	/** @var Config The mediawiki site config object */
-	private static $mwconfig = null;
+	private static $mwConfig = null;
 
 	/** @var Config The extension config object */
-	private static $snconfig = null;
+	private static $snConfig = null;
 
 	const RED = "#b21717";
 	const YELLOW = "#d6be37";
@@ -23,13 +23,13 @@ class SlackNotifications
 	 */
 	private static function getMwConfig()
 	{
-		if (self::$mwconfig == null) {
-			if (self::$mwservices === null) {
-				self::$mwservices = MediaWikiServices::getInstance();
+		if (self::$mwConfig == null) {
+			if (self::$mwServices === null) {
+				self::$mwServices = MediaWikiServices::getInstance();
 			}
-			self::$mwconfig = self::$mwservices->getMainConfig();
+			self::$mwConfig = self::$mwServices->getMainConfig();
 		}
-		return self::$mwconfig;
+		return self::$mwConfig;
 	}
 
 	/**
@@ -39,13 +39,13 @@ class SlackNotifications
 	 */
 	private static function getExtConfig()
 	{
-		if (self::$snconfig == null) {
-			if (self::$mwservices === null) {
-				self::$mwservices = MediaWikiServices::getInstance();
+		if (self::$snConfig == null) {
+			if (self::$mwServices === null) {
+				self::$mwServices = MediaWikiServices::getInstance();
 			}
-			self::$snconfig = self::$mwservices->getConfigFactory()->makeConfig('SlackNotifications');
+			self::$snConfig = self::$mwServices->getConfigFactory()->makeConfig('SlackNotifications');
 		}
-		return self::$snconfig;
+		return self::$snConfig;
 	}
 
 	/**
@@ -142,7 +142,7 @@ class SlackNotifications
 	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/PageContentSaveComplete
 	 */
-	public static function slack_article_saved(
+	public static function articleSaved(
 		WikiPage $article,
 		User $user,
 		Content $content,
@@ -162,7 +162,7 @@ class SlackNotifications
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackIgnoreMinorEdits          = $config->get("SlackIgnoreMinorEdits");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
-		$wgSlackNotificationEditedArticle = $config->get("SlackNotificationEditedArticle");;
+		$wgSlackNotificationEditedArticle = $config->get("SlackNotificationEditedArticle");
 
 
 		if (!$wgSlackNotificationEditedArticle) {
@@ -178,13 +178,13 @@ class SlackNotifications
 			}
 		}
 
-		// Skip new articles (handled elsewhere) and minor edits if user wanted to ignore them
-		if ((int)$status->value['new'] === 1 || ($isMinor && $wgSlackIgnoreMinorEdits)) {
+		// Skip new articles, minor edits, or null revisions (eg protecting articles)
+		if (
+			(int)$status->value['new'] === 1 ||
+			($isMinor && $wgSlackIgnoreMinorEdits) ||
+			$article->getRevision()->getPrevious() === null
+		) {
 			return;
-		}
-
-		if ($article->getRevision()->getPrevious() === null) {
-			return; // Skip edits that are just refreshing the page
 		}
 
 		$message = "A page was updated";
@@ -221,7 +221,7 @@ class SlackNotifications
 				"value" => self::getSlackUserText($user, true),
 			);
 		}
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -230,21 +230,21 @@ class SlackNotifications
 	 * @param User $user The user that created the page
 	 * @param Content $text The new page's content object
 	 * @param string $summary The new page summary
-	 * @param bool $isminor Whether the page creation was marked as a minor edit
-	 * @param bool $iswatch Whether the page creator is watching the new page
+	 * @param bool $isMinor Whether the page creation was marked as a minor edit
+	 * @param bool $isWatch Whether the page creator is watching the new page
 	 * @param null $section Not used
 	 * @param int $flags Bitfield of options
 	 * @param Revision $revision The revision object created by the new page
 	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleInsertComplete
 	 */
-	public static function slack_article_inserted(
+	public static function articleInserted(
 		WikiPage $article,
 		User $user,
 		Content $text,
 		$summary,
-		$isminor,
-		$iswatch,
+		$isMinor,
+		$isWatch,
 		$section,
 		$flags,
 		Revision $revision
@@ -254,7 +254,7 @@ class SlackNotifications
 		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
-		$wgSlackNotificationAddedArticle  = $config->get("SlackNotificationAddedArticle");;
+		$wgSlackNotificationAddedArticle  = $config->get("SlackNotificationAddedArticle");
 
 		if (!$wgSlackNotificationAddedArticle) {
 			return;
@@ -304,7 +304,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -318,7 +318,7 @@ class SlackNotifications
 	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleDeleteComplete
 	 */
-	public static function slack_article_deleted(
+	public static function articleDeleted(
 		WikiPage $article,
 		User $user,
 		$reason,
@@ -330,7 +330,7 @@ class SlackNotifications
 		$wgSlackIncludePageUrls            = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls            = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom   = $config->get("SlackExcludeNotificationsFrom");
-		$wgSlackNotificationRemovedArticle = $config->get("SlackNotificationRemovedArticle");;
+		$wgSlackNotificationRemovedArticle = $config->get("SlackNotificationRemovedArticle");
 
 		if (!$wgSlackNotificationRemovedArticle) {
 			return;
@@ -375,7 +375,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -390,12 +390,12 @@ class SlackNotifications
 	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/TitleMoveComplete
 	 */
-	public static function slack_article_moved(
+	public static function articleMoved(
 		Title $title,
-		Title $newtitle,
+		Title $newTitle,
 		User $user,
-		$oldid,
-		$newid,
+		$oldId,
+		$newId,
 		$reason = null,
 		Revision $revision = null
 	) {
@@ -403,7 +403,7 @@ class SlackNotifications
 		$wgSlackIncludePageUrls           = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls           = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom  = $config->get("SlackExcludeNotificationsFrom");
-		$wgSlackNotificationMovedArticle  = $config->get("SlackNotificationMovedArticle");;
+		$wgSlackNotificationMovedArticle  = $config->get("SlackNotificationMovedArticle");
 
 		if (!$wgSlackNotificationMovedArticle) {
 			return;
@@ -423,7 +423,7 @@ class SlackNotifications
 
 		$message = "A page was moved";
 		$attach[] = array(
-			"fallback"   => sprintf("%s has moved %s to %s", $user, $title->getFullText(), $newtitle->getFullText()),
+			"fallback"   => sprintf("%s has moved %s to %s", $user, $title->getFullText(), $newTitle->getFullText()),
 			"color"      => self::YELLOW,
 			"title"      => $title->getFullText(),
 			"title_link" => $title->getFullUrl(),
@@ -431,7 +431,7 @@ class SlackNotifications
 			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getTimestamp())->format("U"),
 			"text"       => sprintf(
 				"Page was moved to %s by %s\nReason: %s",
-				self::getSlackTitleText($newtitle),
+				self::getSlackTitleText($newTitle),
 				self::getSlackUserText($user),
 				$reason ? "_{$reason}_" : "none given"
 			),
@@ -441,7 +441,7 @@ class SlackNotifications
 			$attach[0]["fields"][] = array(
 				"title" => "New Page Links",
 				"short" => "true",
-				"value" => self::getSlackTitleText($newtitle, true),
+				"value" => self::getSlackTitleText($newTitle, true),
 			);
 		}
 		if ($wgSlackIncludeUserUrls) {
@@ -452,7 +452,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -465,18 +465,18 @@ class SlackNotifications
 	 * @return void
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ArticleProtectComplete
 	 */
-	public static function slack_article_protected(
+	public static function articleProtected(
 		WikiPage $article,
 		User $user,
 		$protect,
 		$reason,
-		$moveonly = false
+		$moveOnly = false
 	) {
 		$config                              = self::getExtConfig();
 		$wgSlackIncludePageUrls              = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls              = $config->get("SlackIncludeUserUrls");
 		$wgSlackExcludeNotificationsFrom     = $config->get("SlackExcludeNotificationsFrom");
-		$wgSlackNotificationProtectedArticle = $config->get("SlackNotificationProtectedArticle");;
+		$wgSlackNotificationProtectedArticle = $config->get("SlackNotificationProtectedArticle");
 
 		if (!$wgSlackNotificationProtectedArticle) {
 			return;
@@ -530,7 +530,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -540,7 +540,7 @@ class SlackNotifications
 	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/AddNewAccount
 	 */
-	public static function slack_new_user_account(User $user, $byEmail)
+	public static function newUserAccount(User $user, $byEmail)
 	{
 		$config                     = self::getExtConfig();
 		$wgSlackShowNewUserIP       = $config->get("SlackShowNewUserIP");
@@ -559,14 +559,14 @@ class SlackNotifications
 			$email = "";
 		}
 		try {
-			$realname = $user->getRealName();
+			$realName = $user->getRealName();
 		} catch (Exception $e) {
-			$realname = "";
+			$realName = "";
 		}
 		try {
-			$ipaddress = $user->getRequest()->getIP();
+			$ipAddress = $user->getRequest()->getIP();
 		} catch (Exception $e) {
-			$ipaddress = "";
+			$ipAddress = "";
 		}
 
 		$message = "A user was created";
@@ -577,17 +577,17 @@ class SlackNotifications
 			"title_link" => $user->getUserPage->getFullUrl(),
 			"text"       => sprintf("New user account was created"),
 			"fields"     => array(),
-			"ts"         => DateTime::createFromFormat("YmdHis", $revision->getRegistration())->format("U"),
+			"ts"         => DateTime::createFromFormat("YmdHis", $user->getRegistration())->format("U"),
 		);
 
 		if ($wgSlackShowNewUserEmail && $email) {
 			$attach[0]["fields"][] = array("title" => "Email", "value" => $email, "short" => true);
 		}
-		if ($wgSlackShowNewUserFullName && $realname) {
-			$attach[0]["fields"][] = array("title" => "Name", "value" => $realname, "short" => true);
+		if ($wgSlackShowNewUserFullName && $realName) {
+			$attach[0]["fields"][] = array("title" => "Name", "value" => $realName, "short" => true);
 		}
-		if ($wgSlackShowNewUserIP && $ipaddress) {
-			$attach[0]["fields"][] = array("title" => "IP", "value" => $ipaddress, "short" => true);
+		if ($wgSlackShowNewUserIP && $ipAddress) {
+			$attach[0]["fields"][] = array("title" => "IP", "value" => $ipAddress, "short" => true);
 		}
 
 		if ($wgSlackIncludeUserUrls) {
@@ -598,7 +598,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -607,7 +607,7 @@ class SlackNotifications
 	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/UploadComplete
 	 */
-	public static function slack_file_uploaded(UploadBase $image)
+	public static function fileUploaded(UploadBase $image)
 	{
 		$config                        = self::getExtConfig();
 		$wgSlackIncludePageUrls        = $config->get("SlackIncludePageUrls");
@@ -668,7 +668,7 @@ class SlackNotifications
 			);
 		}
 
-		self::send_slack_notification($message, $wgUser, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -678,10 +678,9 @@ class SlackNotifications
 	 * @return void
 	 * @see http://www.mediawiki.org/wiki/Manual:MediaWiki_hooks/BlockIpComplete
 	 */
-	public static function slack_user_blocked(Block $block, User $user)
+	public static function userBlocked(Block $block, User $user)
 	{
 		$config                         = self::getExtConfig();
-		$wgSlackIncludePageUrls         = $config->get("SlackIncludePageUrls");
 		$wgSlackIncludeUserUrls         = $config->get("SlackIncludeUserUrls");
 		$wgSlackNotificationBlockedUser = $config->get("SlackNotificationBlockedUser");
 
@@ -717,7 +716,7 @@ class SlackNotifications
 				"value" => self::getSlackUserText($block->getTarget(), true),
 			);
 		}
-		self::send_slack_notification($message, $user, $attach);
+		self::sendNotification($message, $user, $attach);
 	}
 
 	/**
@@ -729,13 +728,13 @@ class SlackNotifications
 	 * @return void
 	 * @see https://api.slack.com/incoming-webhooks
 	 */
-	private static function send_slack_notification($message, $user, $attach = array())
+	private static function sendNotification($message, User $user, $attach = array())
 	{
-		$mwconfig = self::getMwConfig();
+		$mwConfig = self::getMwConfig();
 		$config   = self::getExtConfig();
 
-		$wgSitename                = $mwconfig->get("Sitename");
-		$wgHTTPProxy               = $mwconfig->get("HTTPProxy");
+		$wgSitename                = $mwConfig->get("Sitename");
+		$wgHTTPProxy               = $mwConfig->get("HTTPProxy");
 		$wgSlackEmoji              = $config->get("SlackEmoji");
 		$wgSlackFromName           = $config->get("SlackFromName");
 		$wgSlackRoomName           = $config->get("SlackRoomName");
@@ -746,33 +745,33 @@ class SlackNotifications
 			return; // Users with the permission suppress notifications
 		}
 
-		$post_data = array(
+		$postData = array(
 			"text"        => $message,
 			"channel"     => $wgSlackRoomName ?: null,
 			"username"    => $wgSlackFromName ?: $wgSitename,
 			"icon_emoji"  => $wgSlackEmoji    ?: null,
 			"attachments" => $attach,
 		);
-		$post_data = json_encode($post_data);
+		$postData = json_encode($postData);
 
 		if (ini_get("allow_url_fopen")) {
 			$options = array(
 				"http" => array(
 					"header"  => "Content-type: application/json",
 					"method"  => "POST",
-					"content" => $post_data,
+					"content" => $postData,
 					"proxy"   => $wgHTTPProxy ?: null,
 					"request_fulluri" => (bool)$wgHTTPProxy
 				),
 			);
 			$context = stream_context_create($options);
-			$result = file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
+			file_get_contents($wgSlackIncomingWebhookUrl, false, $context);
 		} elseif (extension_loaded("curl")) {
 			$h = curl_init();
 			curl_setopt_array($h, array(
 				CURLOPT_URL        => $wgSlackIncomingWebhookUrl,
 				CURLOPT_POST       => true,
-				CURLOPT_POSTFIELDS => $post_data,
+				CURLOPT_POSTFIELDS => $postData,
 				CURLOPT_HTTPHEADER => array("Content-Type: application/json"),
 				CURLOPT_PROXY      => $wgHTTPProxy ?: null,
 			));
