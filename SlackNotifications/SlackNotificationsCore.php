@@ -689,7 +689,7 @@ class SlackNotifications
 			return;
 		}
 
-		$blockpage = new SpecialBlock();
+		$blockpage = new SpecialBlockList();
 		$message   = "A user was blocked";
 		$attach[]  = array(
 			"fallback"   => sprintf("%s has blocked %s", $user, $block->getTarget()->getName()),
