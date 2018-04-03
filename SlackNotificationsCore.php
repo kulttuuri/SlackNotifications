@@ -130,18 +130,45 @@ class SlackNotifications
 	 * @param string $title The page title
 	 * @return boolean Whether the title matched the list
 	 */
-	private static function isExcluded($title)
+	private static function isExcluded(Title $title)
 	{
-		$config   = self::getExtConfig();
-		$excluded = $config->get("SlackExcludeNotificationsFrom");
-		if (!is_array($excluded)) {
-			return false;
+		$config = self::getExtConfig();
+		$nspace = $title->getNsText();
+		$spaces = $config->get("SlackExcludedNamespaces");
+		if (is_array($spaces) && count($spaces) > 0) {
+			$result = array_filter(
+				$spaces,
+				function($v) use ($nspace) {return strcmp($nspace, $v) === 0;}
+			);
+			if (count($result)) {
+				return true;
+			}
 		}
-		$result = array_filter(
-			$excluded,
-			function($v) use ($title) {return strpos($title, $v) === 0;}
-		);
-		return (bool)count($result);
+
+		$btitle = $title->getBaseText();
+		$titles = $config->get("SlackExcludedTitles");
+		if (is_array($titles) && count($titles) > 0) {
+			$result = array_filter(
+				$titles,
+				function($v) use ($btitle) {return strpos($btitle, $v) === 0;}
+			);
+			if (count($result)) {
+				return true;
+			}
+		}
+
+		$ftitle = $title->getFullText();
+		$legacy = $config->get("SlackExcludeNotificationsFrom");
+		if (is_array($legacy) && count($legacy) > 0) {
+			$result = array_filter(
+				$legacy,
+				function($v) use ($ftitle) {return strpos($ftitle, $v) === 0;}
+			);
+			if (count($result)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
