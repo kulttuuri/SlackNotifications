@@ -237,7 +237,7 @@ class SlackNotifications
 	 * Occurs after the protect article request has been processed.
 	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/ArticleProtectComplete
 	 */
-	static function slack_article_protected($article, $user, $protect, $reason, $moveonly)
+	static function slack_article_protected($article, $user, $protect, $reason, $moveonly = false)
 	{
 		global $wgSlackNotificationProtectedArticle;
 		if (!$wgSlackNotificationProtectedArticle) return;
@@ -247,7 +247,7 @@ class SlackNotifications
 			$protect ? "changed protection of" : "removed protection of",
 			self::getSlackArticleText($article),
 			$reason);
-		self::push_slack_notify($message, $user);
+		self::push_slack_notify($message, "yellow", $user);
 		return true;
 	}
 
