@@ -113,6 +113,14 @@ class SlackNotifications
 			}
 		}
 
+		// Discard notifications from non-included pages
+		global $wgSlackIncludeNotificationsFrom;
+		if (count($wgSlackIncludeNotificationsFrom) > 0) {
+			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
+				if (0 !== strpos($article->getTitle(), $currentInclude)) return;
+			}
+		}
+
 		// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
 		// calling it also here would trigger two notifications!
 		$isNew = $status->value['new']; // This is 1 if article is new
@@ -161,6 +169,14 @@ class SlackNotifications
 			}
 		}
 
+		// Discard notifications from non-included pages
+		global $wgSlackIncludeNotificationsFrom;
+		if (count($wgSlackIncludeNotificationsFrom) > 0) {
+			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
+				if (0 !== strpos($article->getTitle(), $currentInclude)) return;
+			}
+		}
+
 		// Do not announce newly added file uploads as articles...
 		if ($article->getTitle()->getNsText() == "File") return true;
 		
@@ -195,6 +211,13 @@ class SlackNotifications
 				if (0 === strpos($article->getTitle(), $currentExclude)) return;
 			}
 		}
+		// Discard notifications from non-included pages
+		global $wgSlackIncludeNotificationsFrom;
+		if (count($wgSlackIncludeNotificationsFrom) > 0) {
+			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
+				if (0 !== strpos($article->getTitle(), $currentInclude)) return;
+			}
+		}
 
 		$message = sprintf(
 			"%s has deleted article %s Reason: %s",
@@ -220,6 +243,14 @@ class SlackNotifications
 			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
 				if (0 === strpos($title, $currentExclude)) return;
 				if (0 === strpos($newtitle, $currentExclude)) return;
+			}
+		}
+		// Discard notifications from non-included pages
+		global $wgSlackIncludeNotificationsFrom;
+		if (count($wgSlackIncludeNotificationsFrom) > 0) {
+			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
+				if (0 !== strpos($title, $currentInclude)) return;
+				if (0 !== strpos($newtitle, $currentInclude)) return;
 			}
 		}
 

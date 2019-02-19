@@ -119,6 +119,15 @@ You can exclude notifications from certain namespaces / articles by adding them 
 $wgSlackExcludeNotificationsFrom = ["User:", "Weirdgroup"];
 ```
 
+### Enable notifications from certain pages / namespaces
+
+You can whitelist notifications from certain namespaces / articles by adding them into this array. Note: This targets all pages starting with the name. ALL Other notifications will be discarded, When active, the previously listed exclusion array will further limit this whitelist.
+
+```php
+// Actions (add, edit, modify) will be notified to Slack room from articles starting with these names
+$wgSlackIncludeNotificationsFrom = ["IT:", "Specialgroup"];
+```
+
 ### Actions to notify of
 
 MediaWiki actions that will be sent notifications of into Slack. Set desired options to false to disable notifications of those actions.
