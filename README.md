@@ -174,7 +174,7 @@ To add proxy for requests, you can use the normal MediaWiki way of setting proxy
 
 ## Contributors
 
-[@jacksga](https://github.com/jacksga) [@Meneth](https://github.com/Meneth)
+[@jacksga](https://github.com/jacksga) [@Meneth](https://github.com/Meneth) [@mdmallardi](https://github.com/mdmallardi)
 
 ## License
 
