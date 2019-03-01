@@ -387,6 +387,8 @@ class SlackNotifications
 
 		// Convert " to ' in the message to be sent as otherwise JSON formatting would break.
 		$message = str_replace('"', "'", $message);
+		//Ensure a random \ is not read as the beginning of an escape character. Windows users may be authenticated with a username containing domain\user, so to ensure \ is encoded as \\...
+		$message = str_replace('\\', "\\\\", $message);
 
 		$slackFromName = $wgSlackFromName;
 		if ( $slackFromName == "" )
