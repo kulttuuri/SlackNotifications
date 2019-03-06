@@ -41,7 +41,7 @@ $wgSlackFromName = $wgSitename;
 $wgWikiUrl		= "http://your_wiki_url/";
 // Wiki script name. Leave this to default one if you do not have URL rewriting enabled.
 $wgWikiUrlEnding = "index.php?title=";
-// What method will be used to send the data to Slack server. By default this is "curl" which only works if you have the curl extension enabled. This can be: "curl" or "file_get_contents". Default: "curl".
+// What method will be used to send the data to Slack server. By default this is "curl" which only works if you have the curl extension enabled. This can be: "curl" or "file_get_contents". There have been cases where VisualEditor extension does not work with the curl method, so in that case the recommended solution is to use the file_get_contents method. Default: "curl".
 $wgSlackSendMethod = "curl";
 ```
 
@@ -50,6 +50,14 @@ $wgSlackSendMethod = "curl";
 ## Additional options
 
 These options can be set after including your plugin in your localSettings.php file.
+
+### Customize request call method (Fix extension not working with VisualEditor)
+
+By default this extension uses curl to send the requests to slack's API. If you use VisualEditor and get unknown errors, do not have curl enabled on your server or notice other problems, the recommended solution is to change method to file_get_contents.
+
+```php
+$wgSlackSendMethod = "file_get_contents";
+```
 
 ### Customize room where notifications gets sent to
 
