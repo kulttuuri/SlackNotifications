@@ -360,6 +360,25 @@ class SlackNotifications
 	}
 
 	/**
+	 * Occurs after the user groups (rights) have been changed
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/UserGroupsChanged
+	 */
+	static function slack_user_groups_changed(User $user, array $added, array $removed, $performer, $reason, $oldUGMs, $newUGMs)
+	{
+		global $wgSlackNotificationUserGroupsChanged;
+		if (!$wgSlackNotificationUserGroupsChanged) return;
+
+		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserRights;
+		$message = sprintf(
+            "%s has changed user groups for %s. New groups: %s",
+			self::getSlackUserText($performer),
+			self::getSlackUserText($user),
+			implode(", ", $user->getGroups()));
+		self::push_slack_notify($message, "green", $user);
+		return true;
+	}
+
+	/**
 	 * Sends the message into Slack room.
 	 * @param message Message to be sent.
 	 * @param color Background color for the message. One of "green", "yellow" or "red". (default: yellow)

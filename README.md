@@ -12,6 +12,7 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 * Article protection settings are changed.
 * New user is added.
 * User is blocked.
+* User groups (rights) are changed.
 * File is uploaded.
 * ... and each notification can be individually enabled or disabled :)
 
@@ -145,6 +146,8 @@ MediaWiki actions that will be sent notifications of into Slack. Set desired opt
 $wgSlackNotificationNewUser = true;
 // User or IP blocked in MediaWiki
 $wgSlackNotificationBlockedUser = true;
+// User groups changed in MediaWiki
+$wgSlackNotificationUserGroupsChanged = true;
 // Article added to MediaWiki
 $wgSlackNotificationAddedArticle = true;
 // Article removed from MediaWiki
