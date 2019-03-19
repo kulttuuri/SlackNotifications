@@ -443,9 +443,9 @@ class SlackNotifications
 			curl_setopt($h, CURLOPT_URL, $wgSlackIncomingWebhookUrl);
 			curl_setopt($h, CURLOPT_POST, 1);
 			curl_setopt($h, CURLOPT_POSTFIELDS, $post);
-			// I know this shouldn't be done, but because it wouldn't otherwise work because of SSL...
-			curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
+			// Commented out lines below. Using default curl settings for host and peer verification.
+			//curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
+			//curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
 			// Set proxy for the request if user had proxy URL set
 			if ($wgHTTPProxy) {
 				curl_setopt($h, CURLOPT_PROXY, $wgHTTPProxy);
