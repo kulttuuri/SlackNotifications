@@ -64,7 +64,7 @@
 		"SlackIncludePageUrls": true,
 		"SlackIncludeUserUrls": true,
 		"SlackIgnoreMinorEdits": false,
-		"ExcludedPermission": "",
+		"SlackExcludedPermission": "",
 		"SlackExcludeNotificationsFrom": [],
 		"SlackIncludeNotificationsFrom": [],
 		"WikiUrl": "",
