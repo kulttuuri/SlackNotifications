@@ -116,7 +116,7 @@ By default notifications from all users will be sent to your Slack room. If you 
 
 ```php
 // If this is set, actions by users with this permission won't cause alerts
-$wgExcludedPermission = "";
+$wgSlackExcludedPermission = "";
 ```
 
 ### Disable notifications from certain pages / namespaces
