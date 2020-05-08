@@ -386,10 +386,10 @@ class SlackNotifications
 	 */
 	static function push_slack_notify($message, $bgColor, $user)
 	{
-		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgExcludedPermission, $wgSitename, $wgSlackEmoji, $wgHTTPProxy;
+		global $wgSlackIncomingWebhookUrl, $wgSlackFromName, $wgSlackRoomName, $wgSlackSendMethod, $wgSlackExcludedPermission, $wgSitename, $wgSlackEmoji, $wgHTTPProxy;
 		
-		if ( $wgExcludedPermission != "" ) {
-			if ( $user->isAllowed( $wgExcludedPermission ) )
+		if ( $wgSlackExcludedPermission != "" ) {
+			if ( $user->isAllowed( $wgSlackExcludedPermission ) )
 			{
 				return; // Users with the permission suppress notifications
 			}
