@@ -443,16 +443,16 @@ class SlackNotifications
 			curl_setopt($h, CURLOPT_URL, $wgSlackIncomingWebhookUrl);
 			curl_setopt($h, CURLOPT_POST, 1);
 			curl_setopt($h, CURLOPT_POSTFIELDS, $post);
+			curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
 			// Commented out lines below. Using default curl settings for host and peer verification.
 			//curl_setopt ($h, CURLOPT_SSL_VERIFYHOST, 0);
 			//curl_setopt ($h, CURLOPT_SSL_VERIFYPEER, 0);
 			// Set proxy for the request if user had proxy URL set
 			if ($wgHTTPProxy) {
 				curl_setopt($h, CURLOPT_PROXY, $wgHTTPProxy);
-				curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
 			}
 			// ... Aaand execute the curl script!
-			curl_exec($h);
+			$ok = curl_exec($h);
 			curl_close($h);
 		}
 	}
