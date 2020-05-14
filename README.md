@@ -39,9 +39,9 @@ $wgSlackIncomingWebhookUrl = "";
 // Required. Name the message will appear to be sent from. Change this to whatever you wish it to be.
 $wgSlackFromName = $wgSitename;
 // URL into your MediaWiki installation with the trailing /.
-$wgWikiUrl		= "http://your_wiki_url/";
+$wgSlackNotificationWikiUrl		= "http://your_wiki_url/";
 // Wiki script name. Leave this to default one if you do not have URL rewriting enabled.
-$wgWikiUrlEnding = "index.php?title=";
+$wgSlackNotificationWikiUrlEnding = "index.php?title=";
 // What method will be used to send the data to Slack server. By default this is "curl" which only works if you have the curl extension enabled. This can be: "curl" or "file_get_contents". There have been cases where VisualEditor extension does not work with the curl method, so in that case the recommended solution is to use the file_get_contents method. Default: "curl".
 $wgSlackSendMethod = "curl";
 ```
@@ -167,16 +167,16 @@ $wgSlackNotificationProtectedArticle = true;
 Should any of these default MediaWiki system page URLs differ in your installation, change them here.
 
 ```php
-$wgWikiUrlEndingUserRights          = "Special%3AUserRights&user=";
-$wgWikiUrlEndingBlockUser           = "Special:Block/";
-$wgWikiUrlEndingUserPage            = "User:";
-$wgWikiUrlEndingUserTalkPage        = "User_talk:";
-$wgWikiUrlEndingUserContributions   = "Special:Contributions/";
-$wgWikiUrlEndingBlockList           = "Special:BlockList";
-$wgWikiUrlEndingEditArticle         = "action=edit";
-$wgWikiUrlEndingDeleteArticle       = "action=delete";
-$wgWikiUrlEndingHistory             = "action=history";
-$wgWikiUrlEndingDiff                = "diff=prev&oldid=";
+$wgSlackNotificationWikiUrlEndingUserRights          = "Special%3AUserRights&user=";
+$wgSlackNotificationWikiUrlEndingBlockUser           = "Special:Block/";
+$wgSlackNotificationWikiUrlEndingUserPage            = "User:";
+$wgSlackNotificationWikiUrlEndingUserTalkPage        = "User_talk:";
+$wgSlackNotificationWikiUrlEndingUserContributions   = "Special:Contributions/";
+$wgSlackNotificationWikiUrlEndingBlockList           = "Special:BlockList";
+$wgSlackNotificationWikiUrlEndingEditArticle         = "action=edit";
+$wgSlackNotificationWikiUrlEndingDeleteArticle       = "action=delete";
+$wgSlackNotificationWikiUrlEndingHistory             = "action=history";
+$wgSlackNotificationWikiUrlEndingDiff                = "diff=prev&oldid=";
 ```
 
 ## Setting proxy

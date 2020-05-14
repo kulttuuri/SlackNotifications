@@ -7,24 +7,24 @@ class SlackNotifications
 	 */
 	static function getSlackUserText($user)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserPage,
-			$wgWikiUrlEndingBlockUser, $wgWikiUrlEndingUserRights, 
-			$wgWikiUrlEndingUserTalkPage, $wgWikiUrlEndingUserContributions,
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingUserPage,
+			$wgSlackNotificationWikiUrlEndingBlockUser, $wgSlackNotificationWikiUrlEndingUserRights, 
+			$wgSlackNotificationWikiUrlEndingUserTalkPage, $wgSlackNotificationWikiUrlEndingUserContributions,
 			$wgSlackIncludeUserUrls;
-		
+
 		if ($wgSlackIncludeUserUrls)
 		{
 			return sprintf(
 				"%s (%s | %s | %s | %s)",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockUser.$user."|block>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserRights.$user."|groups>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserTalkPage.$user."|talk>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserContributions.$user."|contribs>");
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingUserPage.$user."|$user>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingBlockUser.$user."|block>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingUserRights.$user."|groups>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingUserTalkPage.$user."|talk>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingUserContributions.$user."|contribs>");
 		}
 		else
 		{
-			return "<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingUserPage.$user."|$user>";
+			return "<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingUserPage.$user."|$user>";
 		}
 	}
 
@@ -34,25 +34,25 @@ class SlackNotifications
 	 */
 	static function getSlackArticleText(WikiPage $article, $diff = false)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-			$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
-			$wgWikiUrlEndingDiff, $wgSlackIncludePageUrls;
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingEditArticle,
+			$wgSlackNotificationWikiUrlEndingDeleteArticle, $wgSlackNotificationWikiUrlEndingHistory,
+			$wgSlackNotificationWikiUrlEndingDiff, $wgSlackIncludePageUrls;
 
-		$prefix = "<".$wgWikiUrl.$wgWikiUrlEnding.str_replace(" ", "_", $article->getTitle()->getFullText());
+		$prefix = "<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.str_replace(" ", "_", $article->getTitle()->getFullText());
 		if ($wgSlackIncludePageUrls)
 		{
 			$out = sprintf(
 				"%s (%s | %s | %s",
 				$prefix."|".$article->getTitle()->getFullText().">",
-				$prefix."&".$wgWikiUrlEndingEditArticle."|edit>",
-				$prefix."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-				$prefix."&".$wgWikiUrlEndingHistory."|history>"/*,
+				$prefix."&".$wgSlackNotificationWikiUrlEndingEditArticle."|edit>",
+				$prefix."&".$wgSlackNotificationWikiUrlEndingDeleteArticle."|delete>",
+				$prefix."&".$wgSlackNotificationWikiUrlEndingHistory."|history>"/*,
 					"move",
 					"protect",
 					"watch"*/);
 			if ($diff)
 			{
-				$out .= " | ".$prefix."&".$wgWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
+				$out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
 			}
 			else
 			{
@@ -72,8 +72,8 @@ class SlackNotifications
 	 */
 	static function getSlackTitleText(Title $title)
 	{
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingEditArticle,
-			$wgWikiUrlEndingDeleteArticle, $wgWikiUrlEndingHistory,
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingEditArticle,
+			$wgSlackNotificationWikiUrlEndingDeleteArticle, $wgSlackNotificationWikiUrlEndingHistory,
 			$wgSlackIncludePageUrls;
 
 		$titleName = $title->getFullText();
@@ -81,17 +81,17 @@ class SlackNotifications
 		{
 			return sprintf(
 				"%s (%s | %s | %s)",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingEditArticle."|edit>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingDeleteArticle."|delete>",
-				"<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."&".$wgWikiUrlEndingHistory."|history>"/*,
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$titleName."|".$titleName.">",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$titleName."&".$wgSlackNotificationWikiUrlEndingEditArticle."|edit>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$titleName."&".$wgSlackNotificationWikiUrlEndingDeleteArticle."|delete>",
+				"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$titleName."&".$wgSlackNotificationWikiUrlEndingHistory."|history>"/*,
 						"move",
 						"protect",
 						"watch"*/);
 		}
 		else
 		{
-			return "<".$wgWikiUrl.$wgWikiUrlEnding.$titleName."|".$titleName.">";
+			return "<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$titleName."|".$titleName.">";
 		}
 	}
 
@@ -324,11 +324,11 @@ class SlackNotifications
 		global $wgSlackNotificationFileUpload;
 		if (!$wgSlackNotificationFileUpload) return;
 
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgUser;
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgUser;
 		$message = sprintf(
 			"%s has uploaded file <%s|%s> (format: %s, size: %s MB, summary: %s)",
 			self::getSlackUserText($wgUser->mName),
-			$wgWikiUrl . $wgWikiUrlEnding . $image->getLocalFile()->getTitle(),
+			$wgSlackNotificationWikiUrl . $wgSlackNotificationWikiUrlEnding . $image->getLocalFile()->getTitle(),
 			$image->getLocalFile()->getTitle(),
 			$image->getLocalFile()->getMimeType(),
 			round($image->getLocalFile()->size / 1024 / 1024, 3),
@@ -347,14 +347,14 @@ class SlackNotifications
 		global $wgSlackNotificationBlockedUser;
 		if (!$wgSlackNotificationBlockedUser) return;
 
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingBlockList;
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingBlockList;
 		$message = sprintf(
 			"%s has blocked %s %s Block expiration: %s. %s",
 			self::getSlackUserText($user),
 			self::getSlackUserText($block->getTarget()),
 			$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
 			$block->mExpiry,
-			"<".$wgWikiUrl.$wgWikiUrlEnding.$wgWikiUrlEndingBlockList."|List of all blocks>.");
+			"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingBlockList."|List of all blocks>.");
 		self::push_slack_notify($message, "red", $user);
 		return true;
 	}
@@ -368,7 +368,7 @@ class SlackNotifications
 		global $wgSlackNotificationUserGroupsChanged;
 		if (!$wgSlackNotificationUserGroupsChanged) return;
 
-		global $wgWikiUrl, $wgWikiUrlEnding, $wgWikiUrlEndingUserRights;
+		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingUserRights;
 		$message = sprintf(
             "%s has changed user groups for %s. New groups: %s",
 			self::getSlackUserText($performer),
