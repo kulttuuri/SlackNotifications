@@ -16,6 +16,11 @@ This is a extension for [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) th
 * File is uploaded.
 * ... and each notification can be individually enabled or disabled :)
 
+## Upgrading extension
+
+Upgrading from older version to 1.15 of this extension has one change that you need to take into account:
+- All configuration parameters now use the format `wgSlack`. If you had configured any of the `wgNotificationWikiUrlEnding` parameters, you need to change these to format: `wgSlackNotificationWikiUrlEnding`.
+
 ## Requirements
 
 * [cURL](http://curl.haxx.se/). This extension also supports using `file_get_contents` for sending the data. See the configuration parameter `$wgSlackSendMethod` below to change this.
