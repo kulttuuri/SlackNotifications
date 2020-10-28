@@ -348,11 +348,16 @@ class SlackNotifications
 		if (!$wgSlackNotificationBlockedUser) return;
 
 		global $wgSlackNotificationWikiUrl, $wgSlackNotificationWikiUrlEnding, $wgSlackNotificationWikiUrlEndingBlockList;
+ 		if (defined('MW_VERSION') && version_compare(MW_VERSION, '1.35', '>=')) {  //DatabaseBlock::$mReason was made protected in MW 1.35
+ 			$mReason = $block->getReasonComment()->text;
+ 		} else {
+ 			$mReason = $block->mReason;
+ 		}
 		$message = sprintf(
 			"%s has blocked %s %s Block expiration: %s. %s",
 			self::getSlackUserText($user),
 			self::getSlackUserText($block->getTarget()),
-			$block->mReason == "" ? "" : "with reason '".$block->mReason."'.",
+			$mReason == "" ? "" : "with reason '".$mReason."'.",
 			$block->mExpiry,
 			"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingBlockList."|List of all blocks>.");
 		self::push_slack_notify($message, "red", $user);
