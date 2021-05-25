@@ -52,7 +52,7 @@ class SlackNotifications
 					"watch"*/);
 			if ($diff)
 			{
-				$out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevision()->getID()."|diff>)";
+				$out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevisionRecord()->getID()."|diff>)";
 			}
 			else
 			{
