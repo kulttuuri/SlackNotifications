@@ -52,7 +52,7 @@ class SlackNotifications
 					"watch"*/);
 			if ($diff)
 			{
-        $out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevisionRecord()->getID()."|diff>)";
+				$out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevisionRecord()->getID()."|diff>)";
 			}
 			else
 			{
@@ -121,6 +121,8 @@ class SlackNotifications
 		if ( !$wgSlackNotificationEditedArticle && !$isNew ) return true;
 		if ( !$wgSlackNotificationAddedArticle && $isNew ) return true;
 		if ( self::titleIsExcluded( $wikiPage->getTitle() ) ) return true;
+		// Ignore null / empty edits (https://en.wikipedia.org/wiki/Wikipedia:Purge#Null_edit)
+		if ($editResult->isNullEdit() == 1) return true;
 
 		// Do not announce newly added file uploads as articles...
 		if ( $wikiPage->getTitle()->getNsText() && $wikiPage->getTitle()->getNsText() == 'File' ) return true;
