@@ -52,13 +52,13 @@ class SlackNotifications
 					"watch"*/);
 			if ($diff)
 			{
-				$out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevisionRecord()->getID()."|diff>)";
+        $out .= " | ".$prefix."&".$wgSlackNotificationWikiUrlEndingDiff.$article->getRevisionRecord()->getID()."|diff>)";
 			}
 			else
 			{
 				$out .= ")";
 			}
-			return $out."\\n";
+			return $out;
 		}
 		else
 		{
@@ -96,102 +96,70 @@ class SlackNotifications
 	}
 
 	/**
-	 * Occurs after the save page request has been processed.
-	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/PageContentSaveComplete
+	 * Returns whether the given title should be excluded
 	 */
-	static function slack_article_saved(WikiPage $article, $user, $content, $summary, $isMinor, $isWatch, $section, $flags, $revision, $status, $baseRevId)
-	{
-		global $wgSlackNotificationEditedArticle;
-		global $wgSlackIgnoreMinorEdits, $wgSlackIncludeDiffSize;
-		if (!$wgSlackNotificationEditedArticle) return;
-
-		// Discard notifications from excluded pages
+	private static function titleIsExcluded( $title ) {
 		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) return;
+		if ( is_array( $wgSlackExcludeNotificationsFrom ) && count( $wgSlackExcludeNotificationsFrom ) > 0 ) {
+			foreach ( $wgSlackExcludeNotificationsFrom as &$currentExclude ) {
+				if ( 0 === strpos( $title, $currentExclude ) ) return true;
 			}
 		}
-
-		// Discard notifications from non-included pages
-		global $wgSlackIncludeNotificationsFrom;
-		if (count($wgSlackIncludeNotificationsFrom) > 0) {
-			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
-				if (0 !== strpos($article->getTitle(), $currentInclude)) return;
-			}
-		}
-
-		// Skip new articles that have view count below 1. Adding new articles is already handled in article_added function and
-		// calling it also here would trigger two notifications!
-		$isNew = $status->value['new']; // This is 1 if article is new
-		if ($isNew == 1) {
-			return true;
-		}
-
-		// Skip minor edits if user wanted to ignore them
-		if ($isMinor && $wgSlackIgnoreMinorEdits) return;
-		
-		if ( $article->getRevision()->getPrevious() == NULL )
-		{
-			return; // Skip edits that are just refreshing the page
-		}
-		
-		$message = sprintf(
-			"%s has %s article %s %s",
-			self::getSlackUserText($user),
-			$isMinor == true ? "made minor edit to" : "edited",
-			self::getSlackArticleText($article, true),
-			$summary == "" ? "" : "Summary: $summary");
-		if ($wgSlackIncludeDiffSize)
-		{		
-			$message .= sprintf(
-				" (%+d bytes)",
-				$article->getRevision()->getSize() - $article->getRevision()->getPrevious()->getSize());
-		}
-		self::push_slack_notify($message, "yellow", $user);
-		return true;
+		return false;
 	}
 
 	/**
-	 * Occurs after a new article has been created.
-	 * @see http://www.mediawiki.org/wiki/Manual:Hooks/ArticleInsertComplete
+	 * Occurs after an article has been created or edited.
+	 * @see https://www.mediawiki.org/wiki/Manual:Hooks/PageSaveComplete
 	 */
-	static function slack_article_inserted(WikiPage $article, $user, $text, $summary, $isminor, $iswatch, $section, $flags, $revision)
+	static function slack_article_saved($wikiPage, $user, $summary, $flags, $revisionRecord, $editResult)
 	{
-		global $wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
-		if (!$wgSlackNotificationAddedArticle) return;
-
-		// Discard notifications from excluded pages
-		global $wgSlackExcludeNotificationsFrom;
-		if (count($wgSlackExcludeNotificationsFrom) > 0) {
-			foreach ($wgSlackExcludeNotificationsFrom as &$currentExclude) {
-				if (0 === strpos($article->getTitle(), $currentExclude)) return;
-			}
-		}
-
-		// Discard notifications from non-included pages
-		global $wgSlackIncludeNotificationsFrom;
-		if (count($wgSlackIncludeNotificationsFrom) > 0) {
-			foreach ($wgSlackIncludeNotificationsFrom as &$currentInclude) {
-				if (0 !== strpos($article->getTitle(), $currentInclude)) return;
-			}
-		}
+		# NEW FUNCTIONALITY
+		global $wgSlackNotificationEditedArticle, $wgSlackIgnoreMinorEdits,
+			$wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
+		$isNew = (bool)( $flags & EDIT_NEW );
+		
+		if ( !$wgSlackNotificationEditedArticle && !$isNew ) return true;
+		if ( !$wgSlackNotificationAddedArticle && $isNew ) return true;
+		if ( self::titleIsExcluded( $wikiPage->getTitle() ) ) return true;
 
 		// Do not announce newly added file uploads as articles...
-		if ($article->getTitle()->getNsText() == "File") return true;
+		if ( $wikiPage->getTitle()->getNsText() && $wikiPage->getTitle()->getNsText() == 'File' ) return true;
 		
-		$message = sprintf(
-			"%s has created article %s %s",
-			self::getSlackUserText($user),
-			self::getSlackArticleText($article),
-			$summary == "" ? "" : "Summary: $summary");
-		if ($wgSlackIncludeDiffSize)
-		{		
-			$message .= sprintf(
-				" (%d bytes)",
-				$article->getRevision()->getSize());
+		if ( $isNew ) {
+			$message = sprintf(
+				"%s has %s article %s %s",
+				self::getSlackUserText( $user ),
+				"created",
+				self::getSlackArticleText( $wikiPage ),
+				$summary == "" ? "" : "Summary: $summary"
+			);
+			if ( $wgSlackIncludeDiffSize ) {
+				$message .= sprintf(
+					" (%+d bytes)",
+					$revisionRecord->getSize());
+			}
+			self::push_slack_notify($message, "yellow", $user);
+		} else {
+			$isMinor = (bool)( $flags & EDIT_MINOR );
+			// Skip minor edits if user wanted to ignore them
+			if ( $isMinor && $wgSlackIgnoreMinorEdits ) return true;
+			
+			$message = sprintf(
+				'%s has %s article %s %s',
+				self::getSlackUserText( $user ),
+				$isMinor == true ? "made minor edit to" : "edited",
+				self::getSlackArticleText( $wikiPage, true ),
+				$summary == "" ? "" : "Summary: $summary"
+			);
+			
+			if ( $wgSlackIncludeDiffSize ) {
+				$message .= sprintf(
+					" (%+d bytes)",
+					$revisionRecord->getSize());
+			}
+			self::push_slack_notify($message, "yellow", $user);
 		}
-		self::push_slack_notify($message, "green", $user);
 		return true;
 	}
 
