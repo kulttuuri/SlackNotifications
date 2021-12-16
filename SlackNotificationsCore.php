@@ -114,7 +114,6 @@ class SlackNotifications
 	 */
 	static function slack_article_saved($wikiPage, $user, $summary, $flags, $revisionRecord, $editResult)
 	{
-		# NEW FUNCTIONALITY
 		global $wgSlackNotificationEditedArticle, $wgSlackIgnoreMinorEdits,
 			$wgSlackNotificationAddedArticle, $wgSlackIncludeDiffSize;
 		$isNew = (bool)( $flags & EDIT_NEW );
