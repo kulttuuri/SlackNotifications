@@ -1,4 +1,5 @@
 <?php
+use MediaWiki\MediaWikiServices;
 class SlackNotifications
 {
 	/**
@@ -157,7 +158,7 @@ class SlackNotifications
 			if ( $wgSlackIncludeDiffSize ) {
 				$message .= sprintf(
 					" (%+d bytes)",
-					$revisionRecord->getSize());
+					$revisionRecord->getSize() - MediaWikiServices::getInstance()->getRevisionLookup()->getPreviousRevision($revisionRecord)->getSize());
 			}
 			self::push_slack_notify($message, "yellow", $user);
 		}
