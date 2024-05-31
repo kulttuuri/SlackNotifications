@@ -326,7 +326,7 @@ class SlackNotifications
 		$message = sprintf(
 			"%s has blocked %s %s Block expiration: %s. %s",
 			self::getSlackUserText($user),
-			self::getSlackUserText($block->getTarget()),
+			self::getSlackUserText($block->getTargetName()),
 			$mReason == "" ? "" : "with reason '".$mReason."'.",
 			$block->mExpiry,
 			"<".$wgSlackNotificationWikiUrl.$wgSlackNotificationWikiUrlEnding.$wgSlackNotificationWikiUrlEndingBlockList."|List of all blocks>.");
