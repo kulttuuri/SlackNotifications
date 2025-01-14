@@ -9,46 +9,14 @@
 		"SlackNotifications": "SlackNotificationsCore.php"
 	},
 	"Hooks": {
-		"PageSaveComplete": [
-			[
-				"SlackNotifications::slack_article_saved"
-			]
-		],
-		"ArticleDeleteComplete": [
-			[
-				"SlackNotifications::slack_article_deleted"
-			]
-		],
-		"TitleMoveComplete": [
-			[
-				"SlackNotifications::slack_article_moved"
-			]
-		],
-		"AddNewAccount": [
-			[
-				"SlackNotifications::slack_new_user_account"
-			]
-		],
-		"BlockIpComplete": [
-			[
-				"SlackNotifications::slack_user_blocked"
-			]
-		],
-		"UploadComplete": [
-			[
-				"SlackNotifications::slack_file_uploaded"
-			]
-		],
-		"ArticleProtectComplete": [
-			[
-				"SlackNotifications::slack_article_protected"
-			]
-		],
-		"UserGroupsChanged": [
-			[
-				"SlackNotifications::slack_user_groups_changed"
-			]
-		]
+		"PageSaveComplete": "SlackNotifications::slack_article_saved",
+		"ArticleDeleteComplete": "SlackNotifications::slack_article_deleted",
+		"TitleMoveComplete": "SlackNotifications::slack_article_moved",
+		"AddNewAccount": "SlackNotifications::slack_new_user_account",
+		"BlockIpComplete": "SlackNotifications::slack_user_blocked",
+		"UploadComplete": "SlackNotifications::slack_file_uploaded",
+		"ArticleProtectComplete": "SlackNotifications::slack_article_protected",
+		"UserGroupsChanged": "SlackNotifications::slack_user_groups_changed"
 	},
 	"config": {
 		"SlackIncomingWebhookUrl": "",
